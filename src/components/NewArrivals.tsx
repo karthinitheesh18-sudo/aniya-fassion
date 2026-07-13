@@ -376,7 +376,7 @@ export default function NewArrivals({
               </div>
             ) : (
               /* Upgraded Products Grid */
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-16">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {paginatedProducts.map((product, index) => {
                   const favorite = isInWishlist(product.id);
                   const brandName = "Aanya Atelier"; // Brand specification
@@ -385,11 +385,11 @@ export default function NewArrivals({
                     <div
                       key={product.id}
                       id={`product-card-${product.id}`}
-                      className="group relative flex flex-col bg-white overflow-hidden transition-all duration-700 hover:-translate-y-2 hover:shadow-2xl border border-transparent hover:border-[#D4AF37]/30 p-3 cursor-pointer"
+                      className="group relative flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 hover:border-[#D4AF37]/40 p-2 sm:p-3 cursor-pointer"
                       onClick={() => onOpenQuickView(product)}
                     >
                       {/* Photo Area */}
-                      <div className="relative h-[380px] sm:h-[460px] bg-[#F5F1E8] overflow-hidden mb-4 border border-gray-100">
+                      <div className="relative h-[200px] sm:h-[260px] md:h-[280px] bg-[#FAF9F6] rounded-md overflow-hidden mb-4 border border-gray-100">
                         
                         {/* Category Badge overlay */}
                         <div className="absolute top-4 left-4 z-10">

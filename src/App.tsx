@@ -19,8 +19,9 @@ import CartDrawer from "./components/CartDrawer";
 import WishlistDrawer from "./components/WishlistDrawer";
 import { Product, CartItem } from "./types";
 import BrandLogoLoader from "./components/BrandLogoLoader";
-import CustomCursor from "./components/CustomCursor";
 import FutureFeatures from "./components/FutureFeatures";
+import Orders from "./components/Orders";
+import Contact from "./components/Contact";
 
 
 export default function App() {
@@ -46,6 +47,15 @@ export default function App() {
   // Filtering and searching states
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState<string>("home");
+
+  const handleSelectCategory = (cat: string) => {
+    setSelectedCategory(cat);
+    setCurrentPage("shop");
+    setTimeout(() => {
+      handleScrollToSection("products-section");
+    }, 150);
+  };
 
   // Sync state changes to storage
   useEffect(() => {
@@ -140,7 +150,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white antialiased relative">
-      <CustomCursor />
       
       {/* Visual initial full brand load curtain screen overlay */}
       {!isAppLoaded && (
@@ -163,55 +172,79 @@ export default function App() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
+          setSelectedCategory={handleSelectCategory}
           onScrollToSection={handleScrollToSection}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
         />
 
         {/* Main Layout Blocks */}
         <main>
           
-          {/* Full Showcase Hero Area */}
-          <Hero onScrollToSection={handleScrollToSection} />
+          {currentPage === "home" && (
+            <>
+              {/* Full Showcase Hero Area */}
+              <Hero onScrollToSection={handleScrollToSection} />
 
-          {/* Categories Section Grid (Featured Collections) */}
-          <Categories
-            onSelectCategory={setSelectedCategory}
-            onScrollToSection={handleScrollToSection}
-          />
+              {/* Categories Section Grid (Featured Collections) */}
+              <Categories
+                onSelectCategory={handleSelectCategory}
+                onScrollToSection={handleScrollToSection}
+              />
 
-          {/* Interactive Products Grid with full filtering & searching */}
-          <NewArrivals
-            onOpenQuickView={setSelectedProduct}
-            onAddToCart={handleAddToCart}
-            wishlist={wishlist}
-            onToggleWishlist={handleToggleWishlist}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            searchQuery={searchQuery}
-          />
+              {/* Testimonials Review Carousel Section */}
+              <Testimonials />
 
-          {/* Interactive Editorial Lookbook Section */}
-          <Lookbook 
-            onOpenQuickView={setSelectedProduct}
-            onAddToCart={handleAddToCart}
-          />
+              {/* Curated Instagram Photo Gallery Section */}
+              <InstagramFeed />
 
-          {/* Designer Spotlight Section */}
-          <DesignerSpotlight 
-            onScrollToSection={handleScrollToSection}
-          />
+              {/* Secure Newsletter subscription container */}
+              <Newsletter />
+            </>
+          )}
 
-          {/* Testimonials Review Carousel Section */}
-          <Testimonials />
+          {currentPage === "shop" && (
+            /* Interactive Products Grid with full filtering & searching */
+            <NewArrivals
+              onOpenQuickView={setSelectedProduct}
+              onAddToCart={handleAddToCart}
+              wishlist={wishlist}
+              onToggleWishlist={handleToggleWishlist}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              searchQuery={searchQuery}
+            />
+          )}
 
-          {/* Curated Instagram Photo Gallery Section */}
-          <InstagramFeed />
+          {currentPage === "lookbook" && (
+            /* Interactive Editorial Lookbook Section */
+            <Lookbook 
+              onOpenQuickView={setSelectedProduct}
+              onAddToCart={handleAddToCart}
+            />
+          )}
 
-          {/* Design Lab & Future Features Sections (Quiz, Outfit builder, Try-on) */}
-          <FutureFeatures />
+          {currentPage === "about" && (
+            /* Designer Spotlight acts as the About Us Page */
+            <DesignerSpotlight 
+              onScrollToSection={handleScrollToSection}
+            />
+          )}
 
-          {/* Secure Newsletter subscription container */}
-          <Newsletter />
+          {currentPage === "orders" && (
+            /* Orders tracking portal page */
+            <Orders />
+          )}
+
+          {currentPage === "contact" && (
+            /* Contact Us Page */
+            <Contact />
+          )}
+
+          {currentPage === "design-lab" && (
+            /* Design Lab & Future Features Sections (Quiz, Outfit builder, Try-on) */
+            <FutureFeatures />
+          )}
 
         </main>
       </div>
@@ -219,7 +252,7 @@ export default function App() {
       {/* Elegant Footer with curtain z-index layer */}
       <Footer
         onScrollToSection={handleScrollToSection}
-        onSelectCategory={setSelectedCategory}
+        onSelectCategory={handleSelectCategory}
       />
 
       {/* Slide-over Right Overlay: Shopping Cart drawer */}

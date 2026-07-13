@@ -24,15 +24,16 @@ export default function Hero({ onScrollToSection }: HeroProps) {
     logoImg.src = "/aanya_logo.png";
     logoImg.crossOrigin = "anonymous";
     logoImg.onload = () => {
-      // Create a 1x1 canvas to extract the top-left pixel color of the uploaded logo image
+      // Create a canvas to sample the top-left corner pixel of the logo image
       const canvas = document.createElement("canvas");
-      canvas.width = 1;
-      canvas.height = 1;
+      canvas.width = logoImg.naturalWidth || 100;
+      canvas.height = logoImg.naturalHeight || 100;
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.drawImage(logoImg, 0, 0, 1, 1);
+        ctx.drawImage(logoImg, 0, 0);
         try {
-          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+          // Sample the corner pixel at (2, 2) to get the true background color without text averaging
+          const [r, g, b] = ctx.getImageData(2, 2, 1, 1).data;
           const hex = `#${[r, g, b].map(x => x.toString(16).padStart(2, "0")).join("")}`;
           setLogoBgColor(hex);
         } catch (e) {

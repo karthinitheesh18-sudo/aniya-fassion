@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, Heart, ShoppingBag, User, Menu, X } from "lucide-react";
+import { Search, Heart, ShoppingBag, User, Menu, X, Sparkles } from "lucide-react";
 import { Product, CartItem } from "../types";
 
 interface NavbarProps {
@@ -12,6 +12,8 @@ interface NavbarProps {
   selectedCategory: string;
   setSelectedCategory: (cat: string) => void;
   onScrollToSection: (id: string) => void;
+  currentPage: string;
+  setCurrentPage: (page: string) => void;
 }
 
 export default function Navbar({
@@ -24,26 +26,71 @@ export default function Navbar({
   selectedCategory,
   setSelectedCategory,
   onScrollToSection,
+  currentPage,
+  setCurrentPage,
 }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    // If not on home page, we always force opaque scrolled styling for readability
+    if (currentPage !== "home") {
+      setIsScrolled(true);
+      return;
+    }
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 80);
     };
+    
+    // Check initial position
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
+    
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [currentPage]);
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const wishlistCount = wishlist.length;
 
-  // Text color based on scrolled state
+  // Text colors based on background opacity states
   const textColor = isScrolled ? "text-[#0A0A0A]" : "text-white";
   const hoverTextColor = "hover:text-[#D4AF37]";
   const iconColor = isScrolled ? "text-[#2C2C2C]" : "text-white/90";
+
+  const handleLinkClick = (e: React.MouseEvent, page: string, id: string, cat?: string) => {
+    e.preventDefault();
+    setIsMobileMenuOpen(false);
+
+    if (cat) {
+      setSelectedCategory(cat);
+    }
+
+    if (currentPage !== page) {
+      setCurrentPage(page);
+      // Wait for layout rendering to complete before scrolling to container
+      if (id) {
+        setTimeout(() => {
+          onScrollToSection(id);
+        }, 150);
+      }
+    } else {
+      if (id) {
+        onScrollToSection(id);
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  };
+
+  const navLinks = [
+    { id: "hero-section", label: "Home", page: "home" },
+    { id: "products-section", label: "Explore", page: "shop", cat: "all" },
+    { id: "orders-section", label: "Orders", page: "orders" },
+    { id: "spotlight-section", label: "About Us", page: "about" },
+    { id: "contact-section", label: "Contact Us", page: "contact" },
+  ];
 
   return (
     <header 
@@ -62,7 +109,7 @@ export default function Navbar({
             <button
               id="mobile-menu-btn"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`p-2 -ml-2 ${textColor} ${hoverTextColor} focus:outline-none transition-colors duration-300`}
+              className={`p-2 -ml-2 ${textColor} ${hoverTextColor} focus:outline-none transition-colors duration-300 cursor-pointer`}
               aria-label="Toggle Menu"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -74,11 +121,8 @@ export default function Navbar({
             <a
               id="brand-logo"
               href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                onScrollToSection("hero-section");
-              }}
-              className={`text-xl font-bold tracking-[0.25em] uppercase hover:opacity-80 transition-all duration-300 ${textColor}`}
+              onClick={(e) => handleLinkClick(e, "home", "hero-section")}
+              className={`text-xl font-bold tracking-[0.25em] uppercase hover:opacity-80 transition-all duration-300 cursor-pointer ${textColor}`}
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               Aanya Fashions
@@ -87,26 +131,14 @@ export default function Navbar({
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
-            {[
-              { id: "products-section", label: "Shop", cat: "all" },
-              { id: "collections-section", label: "Collections" },
-              { id: "lookbook-section", label: "Lookbook" },
-              { id: "spotlight-section", label: "Designer Spotlight" },
-              { id: "testimonials-section", label: "Reviews" },
-              { id: "instagram-section", label: "Instagram" },
-            ].map((link) => (
+            {navLinks.map((link) => (
               <a
                 key={link.id}
                 href={`#${link.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (link.cat) setSelectedCategory(link.cat);
-                  onScrollToSection(link.id);
-                }}
-                className={`relative py-1 text-[11px] font-medium uppercase tracking-widest transition-colors duration-300 ${textColor} ${hoverTextColor} group`}
+                onClick={(e) => handleLinkClick(e, link.page, link.id, link.cat)}
+                className={`relative py-1 text-[11px] font-medium uppercase tracking-widest transition-colors duration-300 cursor-pointer ${textColor} ${hoverTextColor} group`}
               >
                 {link.label}
-                {/* Gold slide underline */}
                 <span className="absolute bottom-0 left-0 w-full h-[1px] bg-[#D4AF37] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </a>
             ))}
@@ -123,7 +155,12 @@ export default function Navbar({
                   type="text"
                   placeholder="Search collections..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (currentPage !== "shop") {
+                      setCurrentPage("shop");
+                    }
+                  }}
                   className={`mr-2 px-3 py-1 text-xs border rounded-none focus:outline-none focus:border-[#D4AF37] w-32 sm:w-44 transition-all duration-300 ${
                     isScrolled 
                       ? "bg-white text-black border-gray-300" 
@@ -137,7 +174,7 @@ export default function Navbar({
                   setIsSearchVisible(!isSearchVisible);
                   if (isSearchVisible) setSearchQuery("");
                 }}
-                className={`p-2 transition-colors duration-300 ${iconColor} ${hoverTextColor}`}
+                className={`p-2 transition-colors duration-300 cursor-pointer ${iconColor} ${hoverTextColor}`}
                 aria-label="Search"
               >
                 <Search className="w-5 h-5" />
@@ -148,32 +185,32 @@ export default function Navbar({
             <button
               id="wishlist-toggle-btn"
               onClick={onOpenWishlist}
-              className={`p-2 transition-colors duration-300 relative ${iconColor} ${hoverTextColor}`}
+              className={`p-2 transition-colors duration-300 relative cursor-pointer ${iconColor} ${hoverTextColor}`}
               aria-label="Wishlist"
             >
               <Heart className="w-5 h-5" />
               {wishlistCount > 0 && (
                 <span 
                   id="wishlist-badge" 
-                  className="absolute top-1 right-1 bg-[#B76E79] text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white"
+                  className="absolute top-1 right-1 bg-[#B76E79] text-white text-[8px] font-bold w-4 h-4 rounded-none flex items-center justify-center border border-[#FAF9F6]"
                 >
                   {wishlistCount}
                 </span>
               )}
             </button>
 
-            {/* Cart Icon */}
+            {/* Shopping Cart Drawer Icon */}
             <button
               id="cart-toggle-btn"
               onClick={onOpenCart}
-              className={`p-2 transition-colors duration-300 relative ${iconColor} ${hoverTextColor}`}
+              className={`p-2 transition-colors duration-300 relative cursor-pointer ${iconColor} ${hoverTextColor}`}
               aria-label="Cart"
             >
               <ShoppingBag className="w-5 h-5" />
               {cartCount > 0 && (
                 <span 
                   id="cart-badge" 
-                  className="absolute top-1 right-1 bg-[#D4AF37] text-black text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white animate-pulse"
+                  className="absolute top-1 right-1 bg-[#D4AF37] text-black text-[8px] font-bold w-4 h-4 rounded-none flex items-center justify-center border border-white"
                 >
                   {cartCount}
                 </span>
@@ -183,67 +220,55 @@ export default function Navbar({
             {/* User Profile Button */}
             <button
               id="account-btn"
-              className={`p-2 transition-colors duration-300 hidden sm:inline-block ${iconColor} ${hoverTextColor}`}
+              className={`p-2 transition-colors duration-300 hidden sm:inline-block cursor-pointer ${iconColor} ${hoverTextColor}`}
               aria-label="Account"
               onClick={() => alert("Simulated: Welcome to Aanya Fashions luxury portal.")}
             >
               <User className="w-5 h-5" />
             </button>
           </div>
+
         </div>
       </nav>
 
-      {/* Full-Screen Mobile Drawer Menu */}
-      <div
-        className={`fixed inset-0 z-40 bg-[#0A0A0A]/98 backdrop-blur-lg flex flex-col justify-center px-8 transition-all duration-500 md:hidden ${
-          isMobileMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
-        }`}
+    {/* Full-Screen Mobile Drawer Menu */}
+    <div
+      className={`fixed inset-0 z-40 bg-[#0A0A0A]/98 backdrop-blur-lg flex flex-col justify-center px-8 transition-all duration-500 md:hidden ${
+        isMobileMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
+      }`}
+    >
+      <button
+        onClick={() => setIsMobileMenuOpen(false)}
+        className="absolute top-6 right-6 p-4 text-white hover:text-[#D4AF37] focus:outline-none cursor-pointer"
+        aria-label="Close Menu"
       >
-        {/* Close Button in Full-Screen menu */}
-        <button
-          onClick={() => setIsMobileMenuOpen(false)}
-          className="absolute top-6 right-6 p-4 text-white hover:text-[#D4AF37] focus:outline-none"
-          aria-label="Close Menu"
-        >
-          <X className="w-8 h-8" />
-        </button>
+        <X className="w-8 h-8" />
+      </button>
 
-        <div className="flex flex-col space-y-6 text-center">
-          {[
-            { id: "products-section", label: "Shop Products", cat: "all" },
-            { id: "collections-section", label: "Collections" },
-            { id: "lookbook-section", label: "Lookbook Portfolio" },
-            { id: "spotlight-section", label: "Designer Spotlight" },
-            { id: "testimonials-section", label: "Client Reviews" },
-            { id: "instagram-section", label: "Instagram Feed" },
-          ].map((link) => (
-            <a
-              key={link.id}
-              href={`#${link.id}`}
-              onClick={(e) => {
-                e.preventDefault();
-                if (link.cat) setSelectedCategory(link.cat);
-                setIsMobileMenuOpen(false);
-                onScrollToSection(link.id);
-              }}
-              className="text-2xl font-bold uppercase tracking-widest text-white hover:text-[#D4AF37] transition-colors duration-300"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
-              {link.label}
-            </a>
-          ))}
-          
-          <button
-            onClick={() => {
-              setIsMobileMenuOpen(false);
-              alert("Simulated: Welcome to Aanya Fashions luxury portal.");
-            }}
-            className="pt-6 text-sm uppercase tracking-widest text-white/50 hover:text-white flex items-center justify-center gap-2"
+      <div className="flex flex-col space-y-6 text-center">
+        {navLinks.map((link) => (
+          <a
+            key={link.id}
+            href={`#${link.id}`}
+            onClick={(e) => handleLinkClick(e, link.page, link.id, link.cat)}
+            className="text-2xl font-bold uppercase tracking-widest text-white hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
+            style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            <User className="w-4 h-4" /> Account Login
-          </button>
-        </div>
+            {link.label}
+          </a>
+        ))}
+        
+        <button
+          onClick={() => {
+            setIsMobileMenuOpen(false);
+            alert("Simulated: Welcome to Aanya Fashions luxury portal.");
+          }}
+          className="pt-6 text-sm uppercase tracking-widest text-white/50 hover:text-white flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <User className="w-4 h-4" /> Account Login
+        </button>
       </div>
-    </header>
+    </div>
+  </header>
   );
 }
