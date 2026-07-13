@@ -32,16 +32,24 @@ export default function Navbar({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isTransitionComplete, setIsTransitionComplete] = useState(false);
 
   useEffect(() => {
-    // If not on home page, we always force opaque scrolled styling for readability
     if (currentPage !== "home") {
       setIsScrolled(true);
+      setIsTransitionComplete(true);
       return;
     }
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 80);
+      
+      const hero = document.getElementById("hero-section");
+      if (!hero) return;
+      const scrollableHeight = hero.offsetHeight - window.innerHeight;
+      if (scrollableHeight <= 0) return;
+      const progress = window.scrollY / scrollableHeight;
+      setIsTransitionComplete(progress >= 0.97);
     };
     
     // Check initial position
@@ -116,16 +124,29 @@ export default function Navbar({
             </button>
           </div>
 
-          {/* Luxury Brand Logo */}
+          {/* Luxury Brand Logo / Placeholder */}
           <div className="flex-shrink-0 flex items-center">
             <a
               id="brand-logo"
               href="#"
               onClick={(e) => handleLinkClick(e, "home", "hero-section")}
-              className={`text-xl font-bold tracking-[0.25em] uppercase hover:opacity-80 transition-all duration-300 cursor-pointer ${textColor}`}
-              style={{ fontFamily: "'Playfair Display', serif" }}
+              className="relative cursor-pointer block"
             >
-              Aanya Fashions
+              <div 
+                id="navbar-logo-placeholder" 
+                className="w-[160px] h-10 flex items-center justify-start"
+              >
+                <img
+                  src="/aanya_logo.png"
+                  alt="Aanya Fashions"
+                  className="h-full w-auto object-contain transition-opacity duration-300"
+                  style={{
+                    opacity: (currentPage !== "home" || isTransitionComplete) ? 1 : 0,
+                    WebkitMaskImage: "radial-gradient(ellipse at center, black 65%, transparent 100%)",
+                    maskImage: "radial-gradient(ellipse at center, black 65%, transparent 100%)",
+                  }}
+                />
+              </div>
             </a>
           </div>
 

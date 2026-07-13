@@ -8,13 +8,13 @@ export default function BrandLogoLoader({ onComplete }: BrandLogoLoaderProps) {
   const [phase, setPhase] = useState<"leaf" | "strokes" | "subtext" | "split" | "exit">("leaf");
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("strokes"), 300);
-    const t2 = setTimeout(() => setPhase("subtext"), 850);
-    const t3 = setTimeout(() => setPhase("split"), 1450);
+    const t1 = setTimeout(() => setPhase("strokes"), 150);
+    const t2 = setTimeout(() => setPhase("subtext"), 400);
+    const t3 = setTimeout(() => setPhase("split"), 800);
     const t4 = setTimeout(() => {
       setPhase("exit");
       onComplete();
-    }, 2050);
+    }, 1200);
 
     return () => {
       clearTimeout(t1);

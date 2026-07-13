@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Star, Heart, Eye, ShoppingCart, Filter, ArrowUp, X, SlidersHorizontal } from "lucide-react";
+import { Star, Heart, Eye, ShoppingCart, Filter, ArrowUp, X, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Product } from "../types";
 import { products } from "../data";
 import { useReveal } from "./useReveal";
@@ -28,6 +28,19 @@ export default function NewArrivals({
 
   // ─── Search and Filtering States ────────────────────────────────────────
   const [sortOption, setSortOption] = useState<string>("newest");
+  const [isSortOpen, setIsSortOpen] = useState<boolean>(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target as Node)) {
+        setIsSortOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
   const [maxPrice, setMaxPrice] = useState<number>(400);
   const [minRating, setMinRating] = useState<number>(0);
   const [activeSize, setActiveSize] = useState<string | null>(null);
@@ -337,19 +350,51 @@ export default function NewArrivals({
               <span>Filters</span>
             </button>
 
-            {/* Sort Dropdown */}
-            <div className="flex items-center space-x-2">
+            {/* Custom Sort Dropdown */}
+            <div ref={sortDropdownRef} className="relative flex items-center space-x-2">
               <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold hidden md:inline">Sort:</span>
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-                className="bg-transparent border border-gray-200 text-xs font-semibold py-3 px-4 focus:outline-none focus:border-[#D4AF37] uppercase tracking-wider cursor-pointer"
-              >
-                <option value="newest">New Arrivals</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="rating">Top Rated</option>
-              </select>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsSortOpen(!isSortOpen)}
+                  className="bg-white border border-gray-200 text-xs font-semibold py-3 px-5 focus:outline-none hover:border-[#D4AF37] focus:border-[#D4AF37] uppercase tracking-wider cursor-pointer flex items-center justify-between gap-2 min-w-[200px] rounded-none transition-all duration-300"
+                >
+                  <span>
+                    {sortOption === "newest" && "New Arrivals"}
+                    {sortOption === "price-low" && "Price: Low to High"}
+                    {sortOption === "price-high" && "Price: High to Low"}
+                    {sortOption === "rating" && "Top Rated"}
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-300 ${isSortOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isSortOpen && (
+                  <div className="absolute right-0 mt-1.5 w-full bg-white border border-[#D4AF37]/25 shadow-lg z-30 animate-fade-in divide-y divide-gray-50">
+                    {[
+                      { value: "newest", label: "New Arrivals" },
+                      { value: "price-low", label: "Price: Low to High" },
+                      { value: "price-high", label: "Price: High to Low" },
+                      { value: "rating", label: "Top Rated" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setSortOption(opt.value);
+                          setIsSortOpen(false);
+                        }}
+                        className={`w-full text-left px-5 py-3.5 text-xs uppercase tracking-wider font-semibold transition-all duration-200 cursor-pointer ${
+                          sortOption === opt.value
+                            ? "bg-[#FAF9F6] text-[#D4AF37] border-l-2 border-[#D4AF37]"
+                            : "text-[#2C2C2C] hover:bg-[#FAF9F6] hover:text-[#D4AF37]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -385,11 +430,11 @@ export default function NewArrivals({
                     <div
                       key={product.id}
                       id={`product-card-${product.id}`}
-                      className="group relative flex flex-col transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+                      className="group relative flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 hover:border-[#D4AF37]/40 p-2 sm:p-3 cursor-pointer"
                       onClick={() => onOpenQuickView(product)}
                     >
                       {/* Photo Area */}
-                      <div className="relative h-[200px] sm:h-[260px] md:h-[280px] bg-[#FAF9F6] overflow-hidden mb-4">
+                      <div className="relative h-[200px] sm:h-[260px] md:h-[280px] bg-[#FAF9F6] rounded-md overflow-hidden mb-4 border border-gray-100">
                         
                         {/* Category Badge overlay */}
                         <div className="absolute top-4 left-4 z-10">
