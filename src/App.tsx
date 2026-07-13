@@ -7,9 +7,11 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import Categories from "./components/Categories";
-import Featured from "./components/Featured";
 import NewArrivals from "./components/NewArrivals";
-import SaleTimer from "./components/SaleTimer";
+import Lookbook from "./components/Lookbook";
+import DesignerSpotlight from "./components/DesignerSpotlight";
+import Testimonials from "./components/Testimonials";
+import InstagramFeed from "./components/InstagramFeed";
 import Newsletter from "./components/Newsletter";
 import Footer from "./components/Footer";
 import QuickViewModal from "./components/QuickViewModal";
@@ -17,6 +19,8 @@ import CartDrawer from "./components/CartDrawer";
 import WishlistDrawer from "./components/WishlistDrawer";
 import { Product, CartItem } from "./types";
 import BrandLogoLoader from "./components/BrandLogoLoader";
+import CustomCursor from "./components/CustomCursor";
+import FutureFeatures from "./components/FutureFeatures";
 
 
 export default function App() {
@@ -136,8 +140,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white antialiased relative">
+      <CustomCursor />
       
-      {/* Dynamic Brand Load overlay */}
+      {/* Visual initial full brand load curtain screen overlay */}
       {!isAppLoaded && (
         <BrandLogoLoader onComplete={() => setIsAppLoaded(true)} />
       )}
@@ -168,14 +173,8 @@ export default function App() {
           {/* Full Showcase Hero Area */}
           <Hero onScrollToSection={handleScrollToSection} />
 
-          {/* Categories Section Grid */}
+          {/* Categories Section Grid (Featured Collections) */}
           <Categories
-            onSelectCategory={setSelectedCategory}
-            onScrollToSection={handleScrollToSection}
-          />
-
-          {/* Featured Curated Style banners */}
-          <Featured
             onSelectCategory={setSelectedCategory}
             onScrollToSection={handleScrollToSection}
           />
@@ -191,11 +190,25 @@ export default function App() {
             searchQuery={searchQuery}
           />
 
-          {/* Sale Ticker Countdown Block */}
-          <SaleTimer
-            onScrollToSection={handleScrollToSection}
-            onSelectCategory={setSelectedCategory}
+          {/* Interactive Editorial Lookbook Section */}
+          <Lookbook 
+            onOpenQuickView={setSelectedProduct}
+            onAddToCart={handleAddToCart}
           />
+
+          {/* Designer Spotlight Section */}
+          <DesignerSpotlight 
+            onScrollToSection={handleScrollToSection}
+          />
+
+          {/* Testimonials Review Carousel Section */}
+          <Testimonials />
+
+          {/* Curated Instagram Photo Gallery Section */}
+          <InstagramFeed />
+
+          {/* Design Lab & Future Features Sections (Quiz, Outfit builder, Try-on) */}
+          <FutureFeatures />
 
           {/* Secure Newsletter subscription container */}
           <Newsletter />
