@@ -1,0 +1,6 @@
+{
+  "name": "LuxeFashion",
+  "description": "Discover premium fashion that speaks to your individuality with our curated collections, interactive categories, real-time filters, and dynamic shopping experience.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
