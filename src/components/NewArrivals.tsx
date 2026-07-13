@@ -385,11 +385,11 @@ export default function NewArrivals({
                     <div
                       key={product.id}
                       id={`product-card-${product.id}`}
-                      className="group relative flex flex-col bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 hover:border-[#D4AF37]/40 p-2 sm:p-3 cursor-pointer"
+                      className="group relative flex flex-col transition-all duration-500 hover:-translate-y-2 cursor-pointer"
                       onClick={() => onOpenQuickView(product)}
                     >
                       {/* Photo Area */}
-                      <div className="relative h-[200px] sm:h-[260px] md:h-[280px] bg-[#FAF9F6] rounded-md overflow-hidden mb-4 border border-gray-100">
+                      <div className="relative h-[200px] sm:h-[260px] md:h-[280px] bg-[#FAF9F6] overflow-hidden mb-4">
                         
                         {/* Category Badge overlay */}
                         <div className="absolute top-4 left-4 z-10">
