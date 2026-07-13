@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { collections } from "../data";
 import { useReveal } from "./useReveal";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -11,6 +11,25 @@ interface CategoriesProps {
 export default function Categories({ onSelectCategory, onScrollToSection }: CategoriesProps) {
   const { ref, isVisible } = useReveal(0.05);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      if (container.scrollLeft >= maxScroll - 10) {
+        container.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        container.scrollBy({ left: 420, behavior: "smooth" });
+      }
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [isPaused]);
 
   const handleCollectionClick = (category: string) => {
     let filterVal = "all";
@@ -79,6 +98,10 @@ export default function Categories({ onSelectCategory, onScrollToSection }: Cate
         {/* Horizontal Scrolling Wrapper */}
         <div 
           ref={scrollContainerRef}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onFocus={() => setIsPaused(true)}
+          onBlur={() => setIsPaused(false)}
           className="flex overflow-x-auto space-x-6 pb-6 snap-x snap-mandatory scroll-smooth scrollbar-none"
           style={{ scrollbarWidth: "none" }} // Firefox hidden scrollbar
         >

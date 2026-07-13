@@ -313,10 +313,10 @@ export default function NewArrivals({
             Signature Pieces
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#0A0A0A] uppercase">
-            Product Catalog
+            New Arrivals
           </h2>
           <div className="w-16 h-[1px] bg-[#D4AF37] mx-auto mt-4 mb-4"></div>
-          <p className="text-gray-500 italic text-sm">Explore our curated collections with detailed filtering</p>
+          <p className="text-gray-500 italic text-sm">Explore our newest curated drops with detailed filtering</p>
         </div>
 
         {/* Catalog Control Bar */}
