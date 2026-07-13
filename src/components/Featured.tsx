@@ -1,6 +1,7 @@
 import React from "react";
 import { Collection } from "../types";
 import { collections } from "../data";
+import { useReveal } from "./useReveal";
 
 interface FeaturedProps {
   onSelectCategory: (categoryName: string) => void;
@@ -8,6 +9,7 @@ interface FeaturedProps {
 }
 
 export default function Featured({ onSelectCategory, onScrollToSection }: FeaturedProps) {
+  const { ref, isVisible } = useReveal(0.05);
   
   const handleCollectionClick = (collectionId: string) => {
     if (collectionId === "summer") {
@@ -21,11 +23,21 @@ export default function Featured({ onSelectCategory, onScrollToSection }: Featur
   };
 
   return (
-    <section id="collections-section" className="py-20 bg-gray-50 border-b border-gray-100">
+    <section 
+      ref={ref} 
+      id="collections-section" 
+      className="py-20 bg-gray-50 border-b border-gray-100"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-4">
+          <h2 
+            className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-4 transition-all duration-1000 ease-luxury"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? "translateY(0)" : "translateY(20px)"
+            }}
+          >
             Featured Collections
           </h2>
           <div className="w-12 h-1 bg-black mx-auto mb-4"></div>
@@ -33,10 +45,15 @@ export default function Featured({ onSelectCategory, onScrollToSection }: Featur
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {collections.map((collection) => (
+          {collections.map((collection, index) => (
             <div
               key={collection.id}
-              className="relative group h-[500px] sm:h-[550px] overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-500 bg-gray-200 cursor-pointer"
+              className="relative group h-[500px] sm:h-[550px] overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-1000 bg-gray-200 cursor-pointer ease-luxury"
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? "translateY(0)" : "translateY(40px)",
+                transitionDelay: `${index * 150}ms`
+              }}
               onClick={() => handleCollectionClick(collection.id)}
             >
               {/* Product Background Image */}
@@ -65,7 +82,7 @@ export default function Featured({ onSelectCategory, onScrollToSection }: Featur
                       e.stopPropagation();
                       handleCollectionClick(collection.id);
                     }}
-                    className="inline-block w-fit bg-white text-black px-6 py-3 text-[11px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors duration-300"
+                    className="inline-block w-fit bg-white text-black px-6 py-3 text-[11px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors duration-500 cursor-pointer"
                   >
                     Shop Now
                   </button>
@@ -78,3 +95,4 @@ export default function Featured({ onSelectCategory, onScrollToSection }: Featur
     </section>
   );
 }
+

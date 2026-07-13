@@ -27,12 +27,28 @@ export default function Navbar({
 }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const wishlistCount = wishlist.length;
 
   return (
-    <header id="main-header" className="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <header 
+      id="main-header" 
+      className={`sticky top-0 z-50 transition-all duration-500 ease-luxury ${
+        isScrolled 
+          ? "bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm" 
+          : "bg-[#FAF9F6] border-b border-transparent"
+      }`}
+    >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           
@@ -57,14 +73,15 @@ export default function Navbar({
                 e.preventDefault();
                 onScrollToSection("hero-section");
               }}
-              className="text-2xl font-bold tracking-tighter uppercase text-black hover:opacity-80 transition-opacity"
+              className="text-xl font-medium tracking-[0.25em] uppercase text-[#3E4A41] hover:opacity-85 transition-all duration-300 flex items-center space-x-2"
+              style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              LUXEFASHION
+              <span>Aanya Fashions</span>
             </a>
           </div>
 
           {/* Navigation Links - Desktop */}
-          <div className="hidden md:flex space-x-8 lg:space-x-10">
+          <div className="hidden md:flex items-center space-x-8 lg:space-x-10">
             <a
               id="nav-shop"
               href="#products"
@@ -73,8 +90,8 @@ export default function Navbar({
                 setSelectedCategory("all");
                 onScrollToSection("products-section");
               }}
-              className={`text-sm font-medium transition-colors hover:text-black ${
-                selectedCategory === "all" ? "text-black border-b-2 border-black pb-1" : "text-gray-500"
+              className={`nav-link text-sm font-medium transition-colors hover:text-black py-1 ${
+                selectedCategory === "all" ? "text-black active-underline" : "text-gray-500"
               }`}
             >
               Shop
@@ -86,7 +103,7 @@ export default function Navbar({
                 e.preventDefault();
                 onScrollToSection("collections-section");
               }}
-              className="text-sm font-medium text-gray-500 transition-colors hover:text-black"
+              className="nav-link text-sm font-medium text-gray-500 transition-colors hover:text-black py-1"
             >
               Collections
             </a>
@@ -98,7 +115,7 @@ export default function Navbar({
                 setSelectedCategory("Jackets");
                 onScrollToSection("products-section");
               }}
-              className="text-sm font-medium text-gray-500 transition-colors hover:text-black"
+              className="nav-link text-sm font-medium text-gray-500 transition-colors hover:text-black py-1"
             >
               New Arrivals
             </a>
@@ -109,7 +126,7 @@ export default function Navbar({
                 e.preventDefault();
                 onScrollToSection("sale-section");
               }}
-              className="text-sm font-semibold text-red-600 hover:text-red-700 transition-colors"
+              className="nav-link text-sm font-semibold text-red-600 hover:text-red-700 transition-colors py-1"
             >
               Sale
             </a>

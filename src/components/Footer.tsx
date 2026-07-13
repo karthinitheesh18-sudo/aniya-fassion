@@ -20,16 +20,19 @@ export default function Footer({ onScrollToSection, onSelectCategory }: FooterPr
   };
 
   return (
-    <footer id="main-footer" className="bg-black text-white pt-24 pb-12 border-t border-gray-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer 
+      id="main-footer" 
+      className="md:fixed md:bottom-0 md:left-0 md:w-full md:z-0 bg-black text-white pt-16 pb-8 border-t border-gray-950 md:h-[380px] flex flex-col justify-center"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         
         {/* Main Grid columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           
           {/* Brand block */}
           <div className="col-span-1">
-            <h4 className="text-2xl font-bold uppercase tracking-tighter mb-6">
-              LUXE<span className="text-gray-500">FASHION</span>
+            <h4 className="text-xl font-medium tracking-[0.2em] uppercase mb-4 text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Aanya Fashions
             </h4>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs mb-6">
               Your destination for premium fashion and timeless style. Engineered to mold to your unique individuality.
@@ -140,9 +143,9 @@ export default function Footer({ onScrollToSection, onSelectCategory }: FooterPr
         </div>
 
         {/* Bottom copyright and legal bar */}
-        <div className="pt-12 border-t border-gray-900 flex flex-col sm:flex-row justify-between items-center gap-6 text-xs text-gray-500">
+        <div className="pt-8 border-t border-gray-900 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500">
           <div>
-            <p>&copy; 2026 LUXEFASHION. All rights reserved.</p>
+            <p>&copy; 2026 Aanya Fashions. All rights reserved.</p>
           </div>
           
           <div className="flex space-x-6">

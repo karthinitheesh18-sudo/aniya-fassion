@@ -2,6 +2,13 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --ease-luxury-sig: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-luxury-out: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-editorial: cubic-bezier(0.76, 0, 0.24, 1);
+    --ease-micro: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   body {
     font-family: 'Inter', sans-serif;
     scroll-behavior: smooth;
@@ -21,24 +28,13 @@
   animation: slideLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.product-card:hover .add-to-cart-btn {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.add-to-cart-btn {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+.animate-scroll-line {
+  animation: scroll-line 2s infinite ease-in-out;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
@@ -62,12 +58,28 @@
 }
 
 @keyframes subtle-zoom {
-  from {
-    transform: scale(1);
-  }
-  to {
-    transform: scale(1.05);
-  }
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+
+@keyframes scroll-line {
+  0% { transform: translateY(-100%); }
+  50% { transform: translateY(100%); }
+  100% { transform: translateY(-100%); }
+}
+
+@keyframes shimmer-move {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+/* Luxury transitions and styles */
+.ease-luxury {
+  transition-timing-function: var(--ease-luxury-sig);
+}
+
+.ease-micro-transition {
+  transition-timing-function: var(--ease-micro);
 }
 
 /* Custom scrollbars for a premium editorial vibe */
@@ -88,4 +100,15 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #444444;
 }
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 

@@ -159,7 +159,7 @@ export default function NewArrivals({
                         e.stopPropagation();
                         onToggleWishlist(product);
                       }}
-                      className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full shadow-md text-gray-400 hover:text-red-500 hover:scale-110 active:scale-95 transition-all duration-200"
+                      className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full shadow-md text-gray-400 hover:text-red-500 hover:scale-110 active:scale-95 transition-all duration-200 wishlist"
                       aria-label="Add to Wishlist"
                     >
                       <Heart
@@ -173,7 +173,7 @@ export default function NewArrivals({
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 card-img"
                       referrerPolicy="no-referrer"
                       loading="lazy"
                     />
@@ -186,7 +186,7 @@ export default function NewArrivals({
                           e.stopPropagation();
                           onOpenQuickView(product);
                         }}
-                        className="bg-white text-black p-3 rounded-full hover:bg-black hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0 duration-300 shadow-md"
+                        className="bg-white text-black p-3 rounded-full hover:bg-black hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0 duration-300 shadow-md quick-view"
                         title="Quick View"
                       >
                         <Eye className="w-4 h-4" />
@@ -194,12 +194,12 @@ export default function NewArrivals({
                     </div>
 
                     {/* Slide up Quick Add button */}
-                    <div className="absolute inset-x-0 bottom-4 px-4 add-to-cart-btn">
+                    <div className="absolute inset-x-0 bottom-4 px-4 add-to-cart">
                       <button
                         type="button"
                         id={`quick-add-btn-${product.id}`}
                         onClick={(e) => handleQuickAdd(e, product)}
-                        className="w-full bg-black text-white text-[11px] py-3.5 font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2"
+                        className="w-full bg-black text-white text-[11px] py-3.5 font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2 rounded shadow-sm cursor-pointer"
                       >
                         <ShoppingCart className="w-3.5 h-3.5" />
                         <span>Quick Add</span>

@@ -16,9 +16,13 @@ import QuickViewModal from "./components/QuickViewModal";
 import CartDrawer from "./components/CartDrawer";
 import WishlistDrawer from "./components/WishlistDrawer";
 import { Product, CartItem } from "./types";
+import BrandLogoLoader from "./components/BrandLogoLoader";
+
 
 export default function App() {
+  const [isAppLoaded, setIsAppLoaded] = useState(false);
   // Shopping Cart state with LocalStorage recovery
+
   const [cart, setCart] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem("luxefashion_cart");
     return savedCart ? JSON.parse(savedCart) : [];
@@ -131,67 +135,75 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white antialiased">
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-black selection:text-white antialiased relative">
       
-      {/* Promotion Announcement Header Banner */}
-      <div className="bg-black text-white text-center py-2 px-4 text-[11px] font-bold uppercase tracking-[0.2em] relative z-50">
-        ✨ Global Free Shipping on Orders Over $150 • Simple 30-Day Returns ✨
-      </div>
+      {/* Dynamic Brand Load overlay */}
+      {!isAppLoaded && (
+        <BrandLogoLoader onComplete={() => setIsAppLoaded(true)} />
+      )}
 
-      {/* Main Header navigation */}
-      <Navbar
-        cart={cart}
-        wishlist={wishlist}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenWishlist={() => setIsWishlistOpen(true)}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        onScrollToSection={handleScrollToSection}
-      />
+      {/* Wrap main content to sit on top of footer curtain */}
+      <div className="relative z-10 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:mb-[380px]">
+        {/* Promotion Announcement Header Banner */}
+        <div className="bg-black text-white text-center py-2 px-4 text-[11px] font-bold uppercase tracking-[0.2em] relative z-50">
+          ✨ Global Free Shipping on Orders Over $150 • Simple 30-Day Returns ✨
+        </div>
 
-      {/* Main Layout Blocks */}
-      <main>
-        
-        {/* Full Showcase Hero Area */}
-        <Hero onScrollToSection={handleScrollToSection} />
-
-        {/* Categories Section Grid */}
-        <Categories
-          onSelectCategory={setSelectedCategory}
-          onScrollToSection={handleScrollToSection}
-        />
-
-        {/* Featured Curated Style banners */}
-        <Featured
-          onSelectCategory={setSelectedCategory}
-          onScrollToSection={handleScrollToSection}
-        />
-
-        {/* Interactive Products Grid with full filtering & searching */}
-        <NewArrivals
-          onOpenQuickView={setSelectedProduct}
-          onAddToCart={handleAddToCart}
+        {/* Main Header navigation */}
+        <Navbar
+          cart={cart}
           wishlist={wishlist}
-          onToggleWishlist={handleToggleWishlist}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenWishlist={() => setIsWishlistOpen(true)}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
-          searchQuery={searchQuery}
-        />
-
-        {/* Sale Ticker Countdown Block */}
-        <SaleTimer
           onScrollToSection={handleScrollToSection}
-          onSelectCategory={setSelectedCategory}
         />
 
-        {/* Secure Newsletter subscription container */}
-        <Newsletter />
+        {/* Main Layout Blocks */}
+        <main>
+          
+          {/* Full Showcase Hero Area */}
+          <Hero onScrollToSection={handleScrollToSection} />
 
-      </main>
+          {/* Categories Section Grid */}
+          <Categories
+            onSelectCategory={setSelectedCategory}
+            onScrollToSection={handleScrollToSection}
+          />
 
-      {/* Elegant Footer */}
+          {/* Featured Curated Style banners */}
+          <Featured
+            onSelectCategory={setSelectedCategory}
+            onScrollToSection={handleScrollToSection}
+          />
+
+          {/* Interactive Products Grid with full filtering & searching */}
+          <NewArrivals
+            onOpenQuickView={setSelectedProduct}
+            onAddToCart={handleAddToCart}
+            wishlist={wishlist}
+            onToggleWishlist={handleToggleWishlist}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            searchQuery={searchQuery}
+          />
+
+          {/* Sale Ticker Countdown Block */}
+          <SaleTimer
+            onScrollToSection={handleScrollToSection}
+            onSelectCategory={setSelectedCategory}
+          />
+
+          {/* Secure Newsletter subscription container */}
+          <Newsletter />
+
+        </main>
+      </div>
+
+      {/* Elegant Footer with curtain z-index layer */}
       <Footer
         onScrollToSection={handleScrollToSection}
         onSelectCategory={setSelectedCategory}

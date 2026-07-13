@@ -1,6 +1,7 @@
 import React from "react";
 import { Category } from "../types";
 import { categories } from "../data";
+import { useReveal } from "./useReveal";
 
 interface CategoriesProps {
   onSelectCategory: (categoryName: string) => void;
@@ -8,6 +9,7 @@ interface CategoriesProps {
 }
 
 export default function Categories({ onSelectCategory, onScrollToSection }: CategoriesProps) {
+  const { ref, isVisible } = useReveal(0.05);
   
   const handleCategoryClick = (categoryName: string) => {
     // We map human-readable category name to the products filters
@@ -22,11 +24,21 @@ export default function Categories({ onSelectCategory, onScrollToSection }: Cate
   };
 
   return (
-    <section id="categories-section" className="py-20 bg-white border-b border-gray-50">
+    <section 
+      ref={ref} 
+      id="categories-section" 
+      className="py-20 bg-white border-b border-gray-50"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-4">
+          <h2 
+            className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-4 transition-all duration-1000 ease-luxury"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? "translateY(0)" : "translateY(20px)"
+            }}
+          >
             Shop by Category
           </h2>
           <div className="w-12 h-1 bg-black mx-auto mb-4"></div>
@@ -34,18 +46,23 @@ export default function Categories({ onSelectCategory, onScrollToSection }: Cate
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <div
               key={category.id}
               onClick={() => handleCategoryClick(category.name)}
-              className="relative group cursor-pointer overflow-hidden rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 bg-gray-100"
+              className="relative group cursor-pointer overflow-hidden rounded-xl shadow-sm hover:shadow-lg transition-all duration-1000 bg-gray-100 ease-luxury"
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? "translateY(0)" : "translateY(40px)",
+                transitionDelay: `${index * 120}ms`
+              }}
             >
               {/* Box Image Ratio framing */}
               <div className="h-[360px] sm:h-[400px] w-full relative overflow-hidden">
                 <img
                   src={category.image}
                   alt={`${category.name} Fashion`}
-                  className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
@@ -69,3 +86,4 @@ export default function Categories({ onSelectCategory, onScrollToSection }: Cate
     </section>
   );
 }
+
