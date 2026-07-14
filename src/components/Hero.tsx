@@ -93,6 +93,15 @@ export default function Hero({ onScrollToSection }: HeroProps) {
         });
         if (ctx) {
           ctx.drawImage(video, 0, 0, offscreen.width, offscreen.height);
+          
+          // Inpaint/remove the bottom-right AI watermark (X=1136..1183, Y=576..623)
+          // by copying the adjacent clean background (X=1110..1130) and stretching it over
+          ctx.drawImage(
+            offscreen,
+            1110, 565, 20, 70, // Source: clean background to the left
+            1130, 565, 65, 70  // Destination: cover watermark area
+          );
+
           try {
             framesRef.current.push(await createImageBitmap(offscreen));
           } catch (err) { console.error("Bitmap failed", err); }
