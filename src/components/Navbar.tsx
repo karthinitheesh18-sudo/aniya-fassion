@@ -42,7 +42,7 @@ export default function Navbar({
     }
 
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 80);
+      setIsScrolled(window.scrollY > 35);
       
       const hero = document.getElementById("hero-section");
       if (!hero) return;
@@ -62,10 +62,10 @@ export default function Navbar({
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const wishlistCount = wishlist.length;
 
-  // Text colors based on background opacity states
-  const textColor = isScrolled ? "text-[#0A0A0A]" : "text-white";
+  // Text colors based on background opacity states (always dark to match reference light navbar)
+  const textColor = "text-[#0A0A0A]";
   const hoverTextColor = "hover:text-[#D4AF37]";
-  const iconColor = isScrolled ? "text-[#2C2C2C]" : "text-white/90";
+  const iconColor = "text-[#2C2C2C]";
 
   const handleLinkClick = (e: React.MouseEvent, page: string, id: string, cat?: string) => {
     e.preventDefault();
@@ -103,14 +103,12 @@ export default function Navbar({
   return (
     <header 
       id="main-header" 
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-luxury ${
-        isScrolled 
-          ? "bg-[#F5F1E8]/95 backdrop-blur-md border-b border-[#D4AF37]/20 shadow-md py-4" 
-          : "bg-transparent py-6"
+      className={`fixed left-0 right-0 mx-auto w-[92%] max-w-7xl z-50 transition-all duration-500 ease-luxury bg-[#F5F1E8]/95 backdrop-blur-md border border-[#D4AF37]/20 shadow-[0_8px_30px_rgba(0,0,0,0.06)] py-2.5 rounded-full ${
+        isScrolled ? "top-2 sm:top-3" : "top-12"
       }`}
     >
-      <nav className="max-w-full px-6 md:px-12">
-        <div className="flex justify-between items-center h-12">
+      <nav className="max-w-full px-6 md:px-8">
+        <div className="flex justify-between items-center h-14">
           
           {/* Mobile Menu Toggle Button */}
           <div className="flex md:hidden">
@@ -125,7 +123,7 @@ export default function Navbar({
           </div>
 
           {/* Luxury Brand Logo / Placeholder */}
-          <div className="flex-shrink-0 flex items-center">
+          <div className="flex-shrink-0 flex items-center pl-5 md:pl-7">
             <a
               id="brand-logo"
               href="#"
@@ -134,17 +132,14 @@ export default function Navbar({
             >
               <div 
                 id="navbar-logo-placeholder" 
-                className="w-[160px] h-10 flex items-center justify-start"
+                className="w-[140px] h-[140px] -my-11 flex items-center justify-start overflow-visible"
               >
                 <img
                   src="/aanya_logo.png"
                   alt="Aanya Fashions"
                   className="h-full w-auto object-contain transition-opacity duration-300"
                   style={{
-                    opacity: (currentPage !== "home" || isTransitionComplete) ? 1 : 0,
-                    WebkitMaskImage: "radial-gradient(ellipse at center, black 65%, transparent 100%)",
-                    maskImage: "radial-gradient(ellipse at center, black 65%, transparent 100%)",
-                    mixBlendMode: "multiply"
+                    opacity: (currentPage !== "home" || isTransitionComplete) ? 1 : 0
                   }}
                 />
               </div>
@@ -153,12 +148,13 @@ export default function Navbar({
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
-            {navLinks.map((link) => (
+            {navLinks.filter(link => link.id !== "contact-section").map((link) => (
               <a
                 key={link.id}
                 href={`#${link.id}`}
                 onClick={(e) => handleLinkClick(e, link.page, link.id, link.cat)}
-                className={`relative py-1 text-[11px] font-medium uppercase tracking-widest transition-colors duration-300 cursor-pointer ${textColor} ${hoverTextColor} group`}
+                className={`relative py-1 text-[13px] font-bold uppercase tracking-[0.2em] transition-colors duration-300 cursor-pointer ${textColor} ${hoverTextColor} group`}
+                style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 {link.label}
                 <span className="absolute bottom-0 left-0 w-full h-[1px] bg-[#D4AF37] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
@@ -247,6 +243,15 @@ export default function Navbar({
               onClick={() => alert("Simulated: Welcome to Aanya Fashions luxury portal.")}
             >
               <User className="w-5 h-5" />
+            </button>
+
+            {/* Contact Pill Button */}
+            <button
+              onClick={(e) => handleLinkClick(e, "home", "contact-section")}
+              className="hidden lg:inline-flex items-center justify-center px-6 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white bg-[#0A0A0A] hover:bg-[#D4AF37] transition-all duration-300 rounded-full cursor-pointer shadow-md ml-2"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Contact
             </button>
           </div>
 

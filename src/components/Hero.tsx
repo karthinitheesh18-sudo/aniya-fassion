@@ -179,8 +179,9 @@ export default function Hero({ onScrollToSection }: HeroProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const setSize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
       setIsMobile(window.innerWidth < 768);
       drawFrame(currentScrollProgressRef.current);
     };
@@ -196,27 +197,32 @@ export default function Hero({ onScrollToSection }: HeroProps) {
   };
 
   const getLogoStyles = () => {
-    if (scrollProgress <= 0.70) return { opacity: 0, scale: 0.85, visibility: "hidden" as const, x: 0, y: 0, rotate: 0, bgOpacity: 1, isFixed: false };
+    if (scrollProgress <= 0.70) return { opacity: 0, scale: 0.85, visibility: "hidden" as const, x: 0, y: 0, rotate: 0, bgOpacity: 1, isFixed: false, brightness: 1 };
     if (scrollProgress <= 0.80) {
       const t = (scrollProgress - 0.70) / 0.10;
-      return { opacity: t, scale: 0.85 + t * 0.2, visibility: "visible" as const, x: 0, y: 0, rotate: 0, bgOpacity: 1, isFixed: false };
+      return { opacity: t, scale: 0.85 + t * 0.2, visibility: "visible" as const, x: 0, y: 0, rotate: 0, bgOpacity: 1, isFixed: false, brightness: 1 };
+    }
+    if (scrollProgress >= 0.88) {
+      // Hide the flying logo once the animation lands and the static navbar logo takes over
+      return { opacity: 0, scale: 0.85, visibility: "hidden" as const, x: 0, y: 0, rotate: 0, bgOpacity: 0, isFixed: false, brightness: 0 };
     }
     const t = Math.max(0, Math.min(1, (scrollProgress - 0.80) / 0.08));
     const easeT = t * t * (3 - 2 * t);
     const W = window.innerWidth, H = window.innerHeight;
     const iw = Math.min(850, W * 0.85);
-    const fs = targetRect ? targetRect.height : 40;
+    const fs = targetRect ? targetRect.height : 140;
     const tx = targetRect ? targetRect.left + fs / 2 : 80;
     const ty = targetRect ? targetRect.top + fs / 2 : 24;
     return {
-      opacity: scrollProgress >= 0.88 ? 0 : 1,
+      opacity: 1,
       scale: 1.05 - (1.05 - fs / iw) * easeT,
       visibility: "visible" as const,
       x: (tx - W / 2) * easeT,
       y: (ty - H / 2) * easeT,
       rotate: (1 - easeT) * -4 * Math.sin(easeT * Math.PI),
       bgOpacity: Math.max(0, 1 - easeT),
-      isFixed: true
+      isFixed: true,
+      brightness: 1 - easeT
     };
   };
 
@@ -234,54 +240,79 @@ export default function Hero({ onScrollToSection }: HeroProps) {
         {isReady && (
           <div className="absolute inset-0 z-20" style={{ opacity: overlayOpacity, pointerEvents: overlayOpacity > 0.05 ? "auto" : "none" }}>
 
-            {/* Interactive HTML CTA Buttons placed precisely inside the circled zones */}
+            {/* Editorial Content Block + CTA Buttons */}
             <div
-              className="absolute left-[5.5vw] top-[58vh] sm:top-[60vh] md:top-[62vh] flex gap-4 md:gap-[95px] pointer-events-auto"
+              className="absolute left-[5.5vw] top-[18vh] sm:top-[22vh] md:top-[25vh] flex flex-col justify-start max-w-xl md:max-w-2xl pointer-events-auto"
             >
-              {/* Primary — Shop Now */}
-              <a
-                href="#new-arrivals"
-                onClick={e => { e.preventDefault(); document.getElementById("new-arrivals")?.scrollIntoView({ behavior: "smooth" }); }}
-                className="group relative overflow-hidden inline-flex items-center gap-2 font-bold uppercase select-none text-black"
-                style={{
-                  background: "#C5A880",
-                  padding: "12px 28px",
-                  fontSize: "10px",
-                  letterSpacing: "0.28em",
-                }}
-              >
-                <span className="relative z-10 transition-colors duration-300 group-hover:text-black">Shop Now</span>
-                <svg className="relative z-10 w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-                <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-              </a>
+              {/* Fashion content text */}
+              <div className="select-none text-left mb-6 md:mb-10">
+                <p 
+                  className="uppercase tracking-[0.45em] text-[#C5A880] text-[11px] sm:text-[13px] font-bold mb-3 sm:mb-4"
+                  style={{ letterSpacing: '0.45em' }}
+                >
+                  Aanya Fashions
+                </p>
+                <h1 
+                  className="text-white text-5xl sm:text-7xl md:text-8xl font-bold tracking-tight leading-[1.0] mb-4" 
+                  style={{ fontFamily: "'Playfair Display', serif" }}
+                >
+                  Fashion
+                  <span className="block text-2xl sm:text-4xl md:text-5xl font-medium tracking-normal mt-2 md:mt-3 leading-tight">
+                    Is More Than Clothing. <br className="hidden sm:inline" /> It's Identity. <span className="italic font-normal text-xl sm:text-3xl md:text-3.5xl text-[#C5A880] font-serif lowercase">Live it. Own it. Be it.</span>
+                  </span>
+                </h1>
+                <p className="text-white/80 text-sm sm:text-base tracking-wide font-light leading-relaxed max-w-md md:max-w-xl">
+                  Discover timeless styles, premium fabrics, and curated collections that speak who you are without saying a word.
+                </p>
+              </div>
 
-              {/* Secondary — Explore Lookbook */}
-              <a
-                href="#categories-section"
-                onClick={e => { e.preventDefault(); document.getElementById("categories-section")?.scrollIntoView({ behavior: "smooth" }); }}
-                className="group inline-flex items-center gap-2 font-bold uppercase transition-all duration-300 select-none text-white border"
-                style={{
-                  borderColor: "rgba(255,255,255,0.4)",
-                  padding: "12px 28px",
-                  fontSize: "10px",
-                  letterSpacing: "0.28em",
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "#C5A880";
-                  (e.currentTarget as HTMLAnchorElement).style.color = "#C5A880";
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.4)";
-                  (e.currentTarget as HTMLAnchorElement).style.color = "white";
-                }}
-              >
-                Explore Lookbook
-                <svg className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
+              {/* Interactive HTML CTA Buttons */}
+              <div className="flex gap-4 sm:gap-6">
+                {/* Primary — Shop Now */}
+                <a
+                  href="#new-arrivals"
+                  onClick={e => { e.preventDefault(); document.getElementById("new-arrivals")?.scrollIntoView({ behavior: "smooth" }); }}
+                  className="group relative overflow-hidden inline-flex items-center gap-2 font-bold uppercase select-none text-black"
+                  style={{
+                    background: "#C5A880",
+                    padding: "16px 38px",
+                    fontSize: "12px",
+                    letterSpacing: "0.3em",
+                  }}
+                >
+                  <span className="relative z-10 transition-colors duration-300 group-hover:text-black">Shop Now</span>
+                  <svg className="relative z-10 w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                  <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                </a>
+
+                {/* Secondary — Explore Lookbook */}
+                <a
+                  href="#categories-section"
+                  onClick={e => { e.preventDefault(); document.getElementById("categories-section")?.scrollIntoView({ behavior: "smooth" }); }}
+                  className="group inline-flex items-center gap-2 font-bold uppercase transition-all duration-300 select-none text-white border"
+                  style={{
+                    borderColor: "rgba(255,255,255,0.4)",
+                    padding: "16px 38px",
+                    fontSize: "12px",
+                    letterSpacing: "0.3em",
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "#C5A880";
+                    (e.currentTarget as HTMLAnchorElement).style.color = "#C5A880";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.4)";
+                    (e.currentTarget as HTMLAnchorElement).style.color = "white";
+                  }}
+                >
+                  Explore Lookbook
+                  <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
             </div>
 
           </div>
@@ -292,10 +323,9 @@ export default function Hero({ onScrollToSection }: HeroProps) {
           <div
             className={`${ls.isFixed ? "fixed" : "absolute"} inset-0 flex items-center justify-center pointer-events-none`}
             style={{
-              opacity: scrollProgress >= 0.88 ? 0 : ls.opacity,
-              background: `rgba(${parseHexToRgb(logoBgColor)}, ${ls.bgOpacity})`,
+              opacity: ls.opacity,
               visibility: ls.visibility,
-              zIndex: ls.isFixed ? 45 : 15,
+              zIndex: ls.isFixed ? 60 : 15,
             }}
           >
             <img
@@ -305,9 +335,6 @@ export default function Hero({ onScrollToSection }: HeroProps) {
               style={{
                 transform: `translate(${ls.x}px, ${ls.y}px) scale(${ls.scale}) rotate(${ls.rotate}deg)`,
                 transition: "transform 75ms linear",
-                WebkitMaskImage: "radial-gradient(ellipse at center, black 50%, transparent 95%)",
-                maskImage: "radial-gradient(ellipse at center, black 50%, transparent 95%)",
-                mixBlendMode: "multiply",
               }}
             />
           </div>

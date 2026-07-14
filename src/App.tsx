@@ -185,10 +185,7 @@ export default function App() {
 
       {/* Wrap main content to sit on top of footer curtain */}
       <div className="relative z-10 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.04)] md:mb-[380px]">
-        {/* Promotion Announcement Header Banner */}
-        <div className="bg-black text-white text-center py-2 px-4 text-[11px] font-bold uppercase tracking-[0.2em] relative z-50">
-          ✨ Global Free Shipping on Orders Over $150 • Simple 30-Day Returns ✨
-        </div>
+
 
         {/* Main Header navigation */}
         <Navbar
