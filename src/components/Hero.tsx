@@ -4,7 +4,7 @@ interface HeroProps {
   onScrollToSection: (id: string) => void;
 }
 
-const TOTAL_FRAMES = 60; // Number of frames to extract from the video (up to watches scene)
+const TOTAL_FRAMES = 150; // Number of frames to extract from the video (up to watches scene)
 
 export default function Hero({ onScrollToSection }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
