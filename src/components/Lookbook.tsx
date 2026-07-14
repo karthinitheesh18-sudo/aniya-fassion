@@ -7,9 +7,10 @@ import { Plus, Eye, ShoppingCart } from "lucide-react";
 interface LookbookProps {
   onOpenQuickView: (product: Product) => void;
   onAddToCart: (product: Product, size: string, color: { name: string; hex: string }) => void;
+  onScrollToSection: (id: string) => void;
 }
 
-export default function Lookbook({ onOpenQuickView, onAddToCart }: LookbookProps) {
+export default function Lookbook({ onOpenQuickView, onAddToCart, onScrollToSection }: LookbookProps) {
   const { ref, isVisible } = useReveal(0.05);
   const [activeTag, setActiveTag] = useState<string | null>(null);
 

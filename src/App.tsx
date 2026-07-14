@@ -68,16 +68,43 @@ export default function App() {
 
   // Handler: Scroll helper
   const handleScrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      const headerOffset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+    const sectionToPageMap: Record<string, string> = {
+      "products-section": "shop",
+      "hero-section": "home",
+      "spotlight-section": "about",
+      "contact-section": "contact",
+      "lookbook-section": "lookbook",
+      "orders-section": "orders",
+    };
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
+    const targetPage = sectionToPageMap[id];
+    if (targetPage && currentPage !== targetPage) {
+      setCurrentPage(targetPage);
+      // Wait for page layout rendering to complete before scrolling
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          const headerOffset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      }, 150);
+    } else {
+      const element = document.getElementById(id);
+      if (element) {
+        const headerOffset = 80;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+      }
     }
   };
 
@@ -221,6 +248,7 @@ export default function App() {
             <Lookbook 
               onOpenQuickView={setSelectedProduct}
               onAddToCart={handleAddToCart}
+              onScrollToSection={handleScrollToSection}
             />
           )}
 

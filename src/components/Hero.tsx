@@ -191,12 +191,20 @@ export default function Hero({ onScrollToSection }: HeroProps) {
   // Preload the campaign poster banner image and trigger canvas redraw on load
   useEffect(() => {
     const img = new Image();
-    img.src = "/hero_ended_banner.png";
     img.onload = () => {
       bannerImgRef.current = img;
-      // Redraw canvas immediately to display the loaded image
       drawFrame(currentScrollProgressRef.current);
     };
+    img.onerror = (e) => {
+      console.error("Failed to load /hero_ended_banner.png", e);
+    };
+    img.src = "/hero_ended_banner.png";
+
+    // Immediate draw fallback if already resolved/cached
+    if (img.complete) {
+      bannerImgRef.current = img;
+      drawFrame(currentScrollProgressRef.current);
+    }
   }, [drawFrame]);
 
   // ─── Step 3: Handle Scroll Event ───────────────────────────────────────
@@ -332,23 +340,6 @@ export default function Hero({ onScrollToSection }: HeroProps) {
           style={{ display: isReady ? "block" : "none" }}
         />
 
-        {/* Luxury fashion banner overlay image (appears after video scrolls past 0.72) */}
-        {isReady && (
-          <div 
-            className="absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300"
-            style={{
-              opacity: scrollProgress <= 0.72 ? 0 : Math.min(1, (scrollProgress - 0.72) / 0.10),
-              zIndex: 10
-            }}
-          >
-            <img
-              src="/hero_ended_banner.png"
-              alt="Aanya Fashions Banner"
-              className="w-full h-full object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-black/15" />
-          </div>
-        )}
 
         {/* High-Fidelity fullscreen logo transition overlay */}
         {isReady && (
