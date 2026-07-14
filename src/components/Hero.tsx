@@ -133,28 +133,15 @@ export default function Hero({ onScrollToSection }: HeroProps) {
       const idx = Math.round((progress / 0.70) * (frames.length - 1));
       cover(frames[Math.max(0, Math.min(frames.length - 1, idx))]);
     } else {
-      // Phase 2 — campaign poster fade-in with dark left mask
+      // Phase 2 — campaign poster fade-in (untouched, no masks, no dark overlays)
       cover(frames[frames.length - 1]);
       const banner = bannerImgRef.current;
       if (banner && banner.complete) {
         const t = Math.min(1, (progress - 0.70) / 0.10);
-        // Draw the campaign poster
         ctx.save();
         ctx.globalAlpha = t;
         cover(banner);
         ctx.restore();
-        // Dark gradient mask over left ~52% to erase baked-in text
-        if (t > 0) {
-          ctx.save();
-          ctx.globalAlpha = t;
-          const grd = ctx.createLinearGradient(0, 0, canvas.width * 0.56, 0);
-          grd.addColorStop(0,    "rgba(4,4,4,1)");
-          grd.addColorStop(0.68, "rgba(4,4,4,0.96)");
-          grd.addColorStop(1,    "rgba(4,4,4,0)");
-          ctx.fillStyle = grd;
-          ctx.fillRect(0, 0, canvas.width * 0.56, canvas.height);
-          ctx.restore();
-        }
       }
     }
   }, []);
@@ -164,7 +151,7 @@ export default function Hero({ onScrollToSection }: HeroProps) {
     const img = new Image();
     img.onload = () => { bannerImgRef.current = img; drawFrame(currentScrollProgressRef.current); };
     img.onerror = e => console.error("Banner load failed", e);
-    img.src = "/hero_ended_banner_clean.png";
+    img.src = "/hero_ended_banner.png";
     if (img.complete) { bannerImgRef.current = img; drawFrame(currentScrollProgressRef.current); }
   }, [drawFrame]);
 
@@ -241,131 +228,62 @@ export default function Hero({ onScrollToSection }: HeroProps) {
       <div className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-black">
 
         {/* Canvas */}
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" style={{ display: isReady ? "block" : "none" }} />
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" style={{ display: isReady ? "block" : "none" }} />
 
         {/* ── Hero campaign overlay — fades in after scroll 70% ── */}
         {isReady && (
           <div className="absolute inset-0 z-20" style={{ opacity: overlayOpacity, pointerEvents: overlayOpacity > 0.05 ? "auto" : "none" }}>
 
-            {/* Layered dark gradient mask — left panel hides baked-in image text */}
-            <div className="absolute inset-0" style={{
-              background: isMobile
-                ? "linear-gradient(to bottom, rgba(4,4,4,0.97) 52%, rgba(4,4,4,0.82) 72%, rgba(4,4,4,0.12) 100%)"
-                : "linear-gradient(105deg, rgba(4,4,4,1) 0%, rgba(4,4,4,0.98) 36%, rgba(4,4,4,0.78) 50%, rgba(4,4,4,0) 66%)"
-            }} />
-
-            {/* Content wrapper */}
-            <div className="absolute inset-0 flex flex-col" style={{ paddingTop: "78px" }}>
-
-              {/* ── Main content column ── */}
-              <div className="flex-1 flex items-center px-8 sm:px-16 md:px-24 lg:px-28">
-                <div className="max-w-[500px] w-full">
-
-                  {/* Eyebrow label */}
-                  <div className="flex items-center gap-3 mb-6">
-                    <span className="block w-8 h-px" style={{ background: "#C5A880" }} />
-                    <span style={{ color: "#C5A880", fontSize: "9px", letterSpacing: "0.42em", fontWeight: 600 }} className="uppercase">
-                      Athena Collection
-                    </span>
-                  </div>
-
-                  {/* Heading — Claude-style clean typographic hierarchy */}
-                  <h1 className="font-serif text-white leading-[1.06] select-none" style={{ fontSize: "clamp(2.1rem, 4.8vw, 4rem)" }}>
-                    Fashion
-                    <span className="block font-light italic mt-1" style={{ color: "#C5A880" }}>
-                      Is More Than Clothing
-                    </span>
-                    <span className="block mt-1">It's Identity</span>
-                  </h1>
-
-                  {/* Byline */}
-                  <p className="font-serif italic mt-2 select-none" style={{ color: "rgba(255,255,255,0.32)", fontSize: "10px", letterSpacing: "0.22em" }}>
-                    by Aanya Fashions
-                  </p>
-
-                  {/* Description */}
-                  <p className="mt-5 leading-relaxed select-none" style={{ color: "rgba(255,255,255,0.58)", fontSize: "clamp(11px,1.1vw,13px)", maxWidth: "360px" }}>
-                    Discover clothing that blends sophistication, comfort, and quality
-                    craftsmanship — for every occasion.
-                  </p>
-
-                  {/* ── CTA Buttons ── */}
-                  <div className="flex flex-wrap gap-3 mt-9">
-
-                    {/* Primary — solid warm gold, white fill on hover */}
-                    <a
-                      href="#new-arrivals"
-                      onClick={e => { e.preventDefault(); document.getElementById("new-arrivals")?.scrollIntoView({ behavior: "smooth" }); }}
-                      className="group relative overflow-hidden inline-flex items-center gap-2 font-bold uppercase select-none"
-                      style={{
-                        background: "#C5A880",
-                        color: "#0D0D0D",
-                        padding: "12px 28px",
-                        fontSize: "10px",
-                        letterSpacing: "0.28em",
-                      }}
-                    >
-                      <span className="relative z-10 transition-colors duration-300 group-hover:text-black">Shop Now</span>
-                      {/* Arrow icon */}
-                      <svg className="relative z-10 w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                      {/* Slide fill */}
-                      <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                    </a>
-
-                    {/* Secondary — ghost outline, gold on hover */}
-                    <a
-                      href="#categories-section"
-                      onClick={e => { e.preventDefault(); document.getElementById("categories-section")?.scrollIntoView({ behavior: "smooth" }); }}
-                      className="group inline-flex items-center gap-2 font-bold uppercase transition-all duration-300 select-none"
-                      style={{
-                        color: "rgba(255,255,255,0.85)",
-                        border: "1px solid rgba(197,168,128,0.38)",
-                        padding: "12px 28px",
-                        fontSize: "10px",
-                        letterSpacing: "0.28em",
-                      }}
-                      onMouseEnter={e => {
-                        (e.currentTarget as HTMLAnchorElement).style.borderColor = "#C5A880";
-                        (e.currentTarget as HTMLAnchorElement).style.color = "#C5A880";
-                      }}
-                      onMouseLeave={e => {
-                        (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(197,168,128,0.38)";
-                        (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.85)";
-                      }}
-                    >
-                      Explore Lookbook
-                      <svg className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </a>
-
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Bottom stats strip ── */}
-              <div
-                className="w-full shrink-0 border-t"
-                style={{ background: "rgba(4,4,4,0.92)", borderColor: "rgba(197,168,128,0.14)" }}
+            {/* Interactive HTML CTA Buttons placed precisely inside the circled zones */}
+            <div
+              className="absolute left-[5.5vw] top-[58vh] sm:top-[60vh] md:top-[62vh] flex gap-4 md:gap-[95px] pointer-events-auto"
+            >
+              {/* Primary — Shop Now */}
+              <a
+                href="#new-arrivals"
+                onClick={e => { e.preventDefault(); document.getElementById("new-arrivals")?.scrollIntoView({ behavior: "smooth" }); }}
+                className="group relative overflow-hidden inline-flex items-center gap-2 font-bold uppercase select-none text-black"
+                style={{
+                  background: "#C5A880",
+                  padding: "12px 28px",
+                  fontSize: "10px",
+                  letterSpacing: "0.28em",
+                }}
               >
-                <div className="px-8 sm:px-16 md:px-24 py-3 flex items-center gap-6 sm:gap-10 md:gap-14 overflow-x-auto scrollbar-hide">
-                  {[
-                    { value: "10K+", label: "Happy Customers" },
-                    { value: "500+", label: "Premium Products" },
-                    { value: "4.8★", label: "Customer Rating"  },
-                    { value: "FAST", label: "Worldwide Shipping" },
-                  ].map(s => (
-                    <div key={s.label} className="flex flex-col shrink-0">
-                      <span className="font-serif font-bold tracking-widest leading-none" style={{ color: "#C5A880", fontSize: "14px" }}>{s.value}</span>
-                      <span className="uppercase mt-0.5 whitespace-nowrap" style={{ color: "rgba(255,255,255,0.30)", fontSize: "8px", letterSpacing: "0.2em" }}>{s.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                <span className="relative z-10 transition-colors duration-300 group-hover:text-black">Shop Now</span>
+                <svg className="relative z-10 w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+                <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+              </a>
 
+              {/* Secondary — Explore Lookbook */}
+              <a
+                href="#categories-section"
+                onClick={e => { e.preventDefault(); document.getElementById("categories-section")?.scrollIntoView({ behavior: "smooth" }); }}
+                className="group inline-flex items-center gap-2 font-bold uppercase transition-all duration-300 select-none text-white border"
+                style={{
+                  borderColor: "rgba(255,255,255,0.4)",
+                  padding: "12px 28px",
+                  fontSize: "10px",
+                  letterSpacing: "0.28em",
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "#C5A880";
+                  (e.currentTarget as HTMLAnchorElement).style.color = "#C5A880";
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.4)";
+                  (e.currentTarget as HTMLAnchorElement).style.color = "white";
+                }}
+              >
+                Explore Lookbook
+                <svg className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
             </div>
+
           </div>
         )}
 
