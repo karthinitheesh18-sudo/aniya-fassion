@@ -49,7 +49,7 @@ export default function Navbar({
       const scrollableHeight = hero.offsetHeight - window.innerHeight;
       if (scrollableHeight <= 0) return;
       const progress = window.scrollY / scrollableHeight;
-      setIsTransitionComplete(progress >= 0.97);
+      setIsTransitionComplete(progress >= 0.88);
     };
     
     // Check initial position
@@ -109,7 +109,7 @@ export default function Navbar({
           : "bg-transparent py-6"
       }`}
     >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="max-w-full px-6 md:px-12">
         <div className="flex justify-between items-center h-12">
           
           {/* Mobile Menu Toggle Button */}
@@ -144,6 +144,7 @@ export default function Navbar({
                     opacity: (currentPage !== "home" || isTransitionComplete) ? 1 : 0,
                     WebkitMaskImage: "radial-gradient(ellipse at center, black 65%, transparent 100%)",
                     maskImage: "radial-gradient(ellipse at center, black 65%, transparent 100%)",
+                    mixBlendMode: "multiply"
                   }}
                 />
               </div>
