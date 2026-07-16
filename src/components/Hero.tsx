@@ -247,8 +247,13 @@ export default function Hero({ onScrollToSection }: HeroProps) {
 
         {/* ── Hero campaign overlay — fades in after scroll 70% ── */}
         {isReady && (
-          <div className="absolute inset-0 z-20" style={{ opacity: overlayOpacity, pointerEvents: overlayOpacity > 0.05 ? "auto" : "none" }}>
-
+          <div 
+            className="absolute inset-0 z-20" 
+            style={{ 
+              opacity: overlayOpacity, 
+              pointerEvents: overlayOpacity > 0.05 ? "auto" : "none" 
+            }}
+          >
             {/* Editorial Content Block + CTA Buttons */}
             <div
               className="absolute left-[5.5vw] top-[18vh] sm:top-[22vh] md:top-[25vh] flex flex-col justify-start max-w-xl md:max-w-2xl pointer-events-auto"
@@ -256,74 +261,77 @@ export default function Hero({ onScrollToSection }: HeroProps) {
               {/* Fashion content text */}
               <div className="select-none text-left mb-6 md:mb-10">
                 <p 
-                  className="uppercase tracking-[0.45em] text-[#C5A880] text-[11px] sm:text-[13px] font-bold mb-3 sm:mb-4"
+                  className="uppercase tracking-[0.45em] text-[#B76E79] text-[11px] sm:text-[13px] font-bold mb-3 sm:mb-4 animate-fade-in"
                   style={{ letterSpacing: '0.45em' }}
                 >
                   Aanya Fashions
                 </p>
                 <h1 
-                  className="text-white text-5xl sm:text-7xl md:text-8xl font-bold tracking-tight leading-[1.0] mb-4" 
+                  className="text-black text-5xl sm:text-7xl md:text-8xl font-bold tracking-tight leading-[1.0] mb-4" 
                   style={{ fontFamily: "'Playfair Display', serif" }}
                 >
                   Fashion
-                  <span className="block text-2xl sm:text-4xl md:text-5xl font-medium tracking-normal mt-2 md:mt-3 leading-tight">
-                    Is More Than Clothing. <br className="hidden sm:inline" /> It's Identity. <span className="italic font-normal text-xl sm:text-3xl md:text-3.5xl text-[#C5A880] font-serif lowercase">Live it. Own it. Be it.</span>
+                  <span className="block text-2xl sm:text-4xl md:text-5xl font-medium tracking-normal mt-2 md:mt-3 leading-tight text-neutral-800">
+                    Is More Than Clothing. <br className="hidden sm:inline" /> It's Identity. <span className="italic font-normal text-xl sm:text-3xl md:text-3.5xl text-[#B76E79] font-serif lowercase">live it. own it. be it.</span>
                   </span>
                 </h1>
-                <p className="text-white/80 text-sm sm:text-base tracking-wide font-light leading-relaxed max-w-md md:max-w-xl">
+                <p className="text-neutral-600 text-sm sm:text-base tracking-wide font-light leading-relaxed max-w-md md:max-w-xl">
                   Discover timeless styles, premium fabrics, and curated collections that speak who you are without saying a word.
                 </p>
               </div>
 
-              {/* Interactive HTML CTA Buttons */}
+              {/* Interactive CTA Buttons */}
               <div className="flex gap-4 sm:gap-6">
                 {/* Primary — Shop Now */}
                 <a
-                  href="#new-arrivals"
-                  onClick={e => { e.preventDefault(); document.getElementById("new-arrivals")?.scrollIntoView({ behavior: "smooth" }); }}
-                  className="group relative overflow-hidden inline-flex items-center gap-2 font-bold uppercase select-none text-black"
-                  style={{
-                    background: "#C5A880",
-                    padding: "16px 38px",
-                    fontSize: "12px",
-                    letterSpacing: "0.3em",
+                  href="#products-section"
+                  onClick={e => { 
+                    e.preventDefault(); 
+                    const element = document.getElementById("products-section");
+                    if (element) {
+                      const headerOffset = 80;
+                      const elementPosition = element.getBoundingClientRect().top;
+                      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                      window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth",
+                      });
+                    }
                   }}
+                  className="group relative overflow-hidden inline-flex items-center gap-2.5 font-sans font-bold uppercase tracking-[0.2em] text-[11px] sm:text-xs rounded-full select-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer bg-black text-white px-8 py-4 sm:px-9 sm:py-4.5 border border-black hover:text-black"
                 >
-                  <span className="relative z-10 transition-colors duration-300 group-hover:text-black">Shop Now</span>
-                  <svg className="relative z-10 w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] z-0" />
+                  <span className="relative z-10">Shop Now</span>
+                  <svg className="relative z-10 w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
-                  <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                 </a>
 
                 {/* Secondary — Explore Lookbook */}
                 <a
-                  href="#categories-section"
-                  onClick={e => { e.preventDefault(); document.getElementById("categories-section")?.scrollIntoView({ behavior: "smooth" }); }}
-                  className="group inline-flex items-center gap-2 font-bold uppercase transition-all duration-300 select-none text-white border"
-                  style={{
-                    borderColor: "rgba(255,255,255,0.4)",
-                    padding: "16px 38px",
-                    fontSize: "12px",
-                    letterSpacing: "0.3em",
+                  href="#lookbook-section"
+                  onClick={e => { 
+                    e.preventDefault(); 
+                    const element = document.getElementById("lookbook-section");
+                    if (element) {
+                      const headerOffset = 80;
+                      const elementPosition = element.getBoundingClientRect().top;
+                      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                      window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth",
+                      });
+                    }
                   }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "#C5A880";
-                    (e.currentTarget as HTMLAnchorElement).style.color = "#C5A880";
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.4)";
-                    (e.currentTarget as HTMLAnchorElement).style.color = "white";
-                  }}
+                  className="group inline-flex items-center gap-2.5 font-sans font-bold uppercase tracking-[0.2em] text-[11px] sm:text-xs rounded-full select-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer bg-transparent text-black border border-black/25 hover:border-black px-8 py-4 sm:px-9 sm:py-4.5"
                 >
                   Explore Lookbook
-                  <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </a>
               </div>
             </div>
-
           </div>
         )}
 

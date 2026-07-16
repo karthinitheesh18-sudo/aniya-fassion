@@ -6,12 +6,9 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
-import Categories from "./components/Categories";
 import NewArrivals from "./components/NewArrivals";
 import Lookbook from "./components/Lookbook";
 import DesignerSpotlight from "./components/DesignerSpotlight";
-import Testimonials from "./components/Testimonials";
-import InstagramFeed from "./components/InstagramFeed";
 import Newsletter from "./components/Newsletter";
 import Footer from "./components/Footer";
 import QuickViewModal from "./components/QuickViewModal";
@@ -22,6 +19,13 @@ import BrandLogoLoader from "./components/BrandLogoLoader";
 import FutureFeatures from "./components/FutureFeatures";
 import Orders from "./components/Orders";
 import Contact from "./components/Contact";
+
+import SecondHero from "./components/SecondHero";
+import FloatingCategories from "./components/FloatingCategories";
+import FeaturedCollections from "./components/FeaturedCollections";
+import PromotionalBanners from "./components/PromotionalBanners";
+import BestSellers from "./components/BestSellers";
+import Benefits from "./components/Benefits";
 
 
 export default function App() {
@@ -210,17 +214,40 @@ export default function App() {
               {/* Full Showcase Hero Area */}
               <Hero onScrollToSection={handleScrollToSection} />
 
-              {/* Categories Section Grid (Featured Collections) */}
-              <Categories
+              {/* Large Spacer breathing room */}
+              <div className="h-24 sm:h-36 bg-white" />
+
+              {/* New Second Hero (End Banner Hero) */}
+              <SecondHero
+                onScrollToSection={handleScrollToSection}
+                onSelectCategory={handleSelectCategory}
+              />
+
+              {/* Floating Categories circle links */}
+              <FloatingCategories onSelectCategory={handleSelectCategory} />
+
+              {/* Featured Collections categories grid */}
+              <FeaturedCollections
                 onSelectCategory={handleSelectCategory}
                 onScrollToSection={handleScrollToSection}
               />
 
-              {/* Testimonials Review Carousel Section */}
-              <Testimonials />
+              {/* Promotional Banners split banner */}
+              <PromotionalBanners
+                onSelectCategory={handleSelectCategory}
+                onScrollToSection={handleScrollToSection}
+              />
 
-              {/* Curated Instagram Photo Gallery Section */}
-              <InstagramFeed />
+              {/* Best Sellers Grid - Our Most Loved Picks */}
+              <BestSellers
+                onOpenQuickView={setSelectedProduct}
+                onAddToCart={handleAddToCart}
+                wishlist={wishlist}
+                onToggleWishlist={handleToggleWishlist}
+              />
+
+              {/* Benefits assurance bar */}
+              <Benefits />
 
               {/* Secure Newsletter subscription container */}
               <Newsletter />
