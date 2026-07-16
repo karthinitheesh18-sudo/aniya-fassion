@@ -24,9 +24,10 @@ export default function Hero({ onScrollToSection }: HeroProps) {
   const slideImages = [
     "/slide_model_1.png",
     "/slide_model_2.png",
-    "/slide_model_3.png",
-    "/slide_model_4.png"
+    "/slide_model_3.png"
   ];
+  const [processedSlides, setProcessedSlides] = useState<string[]>(slideImages);
+  const [hasStartedProcessing, setHasStartedProcessing] = useState(false);
 
   // ─── Logo placeholder rect tracking ──────────────────────────────────────
   const updateTargetRect = useCallback(() => {
@@ -177,18 +178,38 @@ export default function Hero({ onScrollToSection }: HeroProps) {
     if (!isReady) return;
     const container = containerRef.current;
     if (!container) return;
-    const handleScroll = () => {
-      const rect = container.getBoundingClientRect();
-      const scrollable = container.offsetHeight - window.innerHeight;
-      if (scrollable <= 0) return;
-      const p = Math.max(0, Math.min(1, -rect.top / scrollable));
-      setScrollProgress(p);
-      currentScrollProgressRef.current = p;
-      drawFrame(p);
+
+    let containerOffsetTop = container.offsetTop;
+    let scrollable = container.offsetHeight - window.innerHeight;
+    let rafId: number;
+
+    const handleResize = () => {
+      containerOffsetTop = container.offsetTop;
+      scrollable = container.offsetHeight - window.innerHeight;
     };
+    window.addEventListener("resize", handleResize);
+
+    const handleScroll = () => {
+      if (scrollable <= 0) return;
+      const scrollTop = window.scrollY - containerOffsetTop;
+      const p = Math.max(0, Math.min(1, scrollTop / scrollable));
+
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        setScrollProgress(p);
+        currentScrollProgressRef.current = p;
+        drawFrame(p);
+      });
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(rafId);
+    };
   }, [isReady, drawFrame]);
 
   // ─── Step 4: Resize handler ────────────────────────────────────────────────
@@ -207,22 +228,103 @@ export default function Hero({ onScrollToSection }: HeroProps) {
     return () => window.removeEventListener("resize", setSize);
   }, [drawFrame]);
 
-  // Preload slideshow images
+  const isPhase2 = scrollProgress > 0.70;
+
+  // Preload and dynamically clean backgrounds of checkerboard images in the client browser ONLY when Phase 2 starts
   useEffect(() => {
-    slideImages.forEach(src => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
+    if (!isPhase2 || hasStartedProcessing) return;
+    setHasStartedProcessing(true);
+
+    const processAll = async () => {
+      const results = await Promise.all(
+        slideImages.map(src => {
+          return new Promise<string>((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+              try {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) { resolve(src); return; }
+                ctx.drawImage(img, 0, 0);
+                
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imgData.data;
+                const w = canvas.width;
+                const h = canvas.height;
+                
+                // Flood-fill queue
+                const queue: number[] = [];
+                const visited = new Uint8Array(w * h);
+                
+                const isBg = (r: number, g: number, b: number) => {
+                  const max = Math.max(r, g, b);
+                  const min = Math.min(r, g, b);
+                  // Check if it is a light neutral color (white or grey squares + compression edges)
+                  return (max - min) < 15 && min > 150;
+                };
+                
+                const add = (x: number, y: number) => {
+                  const idx = y * w + x;
+                  if (visited[idx]) return;
+                  visited[idx] = 1;
+                  
+                  const p = idx * 4;
+                  if (isBg(data[p], data[p+1], data[p+2])) {
+                    data[p+3] = 0; // Make transparent
+                    queue.push(x, y);
+                  }
+                };
+                
+                // Seed flood-fill from the edges
+                for (let x = 0; x < w; x++) {
+                  add(x, 0);
+                  add(x, h - 1);
+                }
+                for (let y = 0; y < h; y++) {
+                  add(0, y);
+                  add(w - 1, y);
+                }
+                
+                let head = 0;
+                while (head < queue.length) {
+                  const x = queue[head++];
+                  const y = queue[head++];
+                  
+                  // 4-neighbors
+                  if (x > 0) add(x - 1, y);
+                  if (x < w - 1) add(x + 1, y);
+                  if (y > 0) add(x, y - 1);
+                  if (y < h - 1) add(x, y + 1);
+                }
+                
+                ctx.putImageData(imgData, 0, 0);
+                resolve(canvas.toDataURL("image/png"));
+              } catch (e) {
+                console.error("Background cleaner failed", e);
+                resolve(src);
+              }
+            };
+            img.onerror = () => resolve(src);
+            img.src = src;
+          });
+        })
+      );
+      setProcessedSlides(results);
+    };
+    
+    processAll();
+  }, [isPhase2, hasStartedProcessing, slideImages]);
 
   // Auto-advance sliding images in Phase 2
   useEffect(() => {
-    if (scrollProgress <= 0.70) return;
+    if (!isPhase2) return;
     const interval = setInterval(() => {
       setActiveSlide(prev => (prev + 1) % slideImages.length);
     }, 3500);
     return () => clearInterval(interval);
-  }, [scrollProgress, slideImages.length]);
+  }, [isPhase2, slideImages.length]);
 
   // ─── Step 5: Logo fly animation ────────────────────────────────────────────
   const parseHexToRgb = (hex: string) => {
@@ -271,7 +373,7 @@ export default function Hero({ onScrollToSection }: HeroProps) {
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" style={{ display: isReady ? "block" : "none" }} />
 
         {/* ── Hero campaign overlay — fades in after scroll 70% ── */}
-        {isReady && (
+        {isReady && overlayOpacity > 0 && (
           <div 
             className="absolute inset-0 z-20" 
             style={{ 
@@ -280,27 +382,26 @@ export default function Hero({ onScrollToSection }: HeroProps) {
             }}
           >
             {/* Automatic Clothes Slider (Responsive) */}
-            <div className="absolute right-[5.5vw] md:right-[5.5vw] bottom-[8vh] md:top-[12vh] md:bottom-[10vh] w-[55vw] md:w-[45vw] h-[45vh] md:h-auto max-w-[500px] flex items-center justify-center select-none pointer-events-none z-0 md:z-10">
+            <div className="absolute right-[2vw] md:right-[5vw] bottom-[4vh] md:top-[6vh] md:bottom-[6vh] w-[60vw] md:w-[50vw] h-[65vh] md:h-[88vh] max-w-[650px] flex items-center justify-center select-none pointer-events-none z-0 md:z-10">
               {/* Soft decorative background circle */}
-              <div className="absolute w-[90%] h-[90%] rounded-full bg-radial from-[#B76E79]/8 to-transparent blur-3xl" />
+              <div className="absolute w-[95%] h-[95%] rounded-full bg-radial from-[#B76E79]/8 to-transparent blur-3xl" />
               
               {/* Image slideshow */}
               <div className="relative w-full h-full flex items-center justify-center">
-                {slideImages.map((src, index) => {
+                {processedSlides.map((src, index) => {
                   const isActive = index === activeSlide;
                   return (
                     <img
-                      key={src}
+                      key={index}
                       src={src}
                       alt={`Fashion look ${index + 1}`}
-                      className="absolute max-h-full max-w-full object-contain transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] drop-shadow-[0_15px_30px_rgba(0,0,0,0.1)]"
+                      className="absolute max-h-full max-w-full object-contain transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] drop-shadow-[0_20px_45px_rgba(0,0,0,0.12)]"
                       style={{
                         opacity: isActive ? (isMobile ? 0.35 : 1) : 0,
                         transform: isActive 
                           ? "translateX(0) scale(1) rotate(0deg)" 
                           : "translateX(60px) scale(0.95) rotate(0.5deg)",
                         visibility: isActive ? "visible" : "hidden",
-                        mixBlendMode: "multiply",
                       }}
                     />
                   );
