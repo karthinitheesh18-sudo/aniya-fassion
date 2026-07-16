@@ -20,6 +20,14 @@ export default function Hero({ onScrollToSection }: HeroProps) {
   const [targetRect, setTargetRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+  const [activeSlide, setActiveSlide] = useState(0);
+  const slideImages = [
+    "/slide_model_1.png",
+    "/slide_model_2.png",
+    "/slide_model_3.png",
+    "/slide_model_4.png"
+  ];
+
   // ─── Logo placeholder rect tracking ──────────────────────────────────────
   const updateTargetRect = useCallback(() => {
     const placeholder = document.getElementById("navbar-logo-placeholder");
@@ -199,6 +207,23 @@ export default function Hero({ onScrollToSection }: HeroProps) {
     return () => window.removeEventListener("resize", setSize);
   }, [drawFrame]);
 
+  // Preload slideshow images
+  useEffect(() => {
+    slideImages.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
+
+  // Auto-advance sliding images in Phase 2
+  useEffect(() => {
+    if (scrollProgress <= 0.70) return;
+    const interval = setInterval(() => {
+      setActiveSlide(prev => (prev + 1) % slideImages.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [scrollProgress, slideImages.length]);
+
   // ─── Step 5: Logo fly animation ────────────────────────────────────────────
   const parseHexToRgb = (hex: string) => {
     const h = hex.replace("#", "");
@@ -254,9 +279,38 @@ export default function Hero({ onScrollToSection }: HeroProps) {
               pointerEvents: overlayOpacity > 0.05 ? "auto" : "none" 
             }}
           >
+            {/* Automatic Clothes Slider (Responsive) */}
+            <div className="absolute right-[5.5vw] md:right-[5.5vw] bottom-[8vh] md:top-[12vh] md:bottom-[10vh] w-[55vw] md:w-[45vw] h-[45vh] md:h-auto max-w-[500px] flex items-center justify-center select-none pointer-events-none z-0 md:z-10">
+              {/* Soft decorative background circle */}
+              <div className="absolute w-[90%] h-[90%] rounded-full bg-radial from-[#B76E79]/8 to-transparent blur-3xl" />
+              
+              {/* Image slideshow */}
+              <div className="relative w-full h-full flex items-center justify-center">
+                {slideImages.map((src, index) => {
+                  const isActive = index === activeSlide;
+                  return (
+                    <img
+                      key={src}
+                      src={src}
+                      alt={`Fashion look ${index + 1}`}
+                      className="absolute max-h-full max-w-full object-contain transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] drop-shadow-[0_15px_30px_rgba(0,0,0,0.1)]"
+                      style={{
+                        opacity: isActive ? (isMobile ? 0.35 : 1) : 0,
+                        transform: isActive 
+                          ? "translateX(0) scale(1) rotate(0deg)" 
+                          : "translateX(60px) scale(0.95) rotate(0.5deg)",
+                        visibility: isActive ? "visible" : "hidden",
+                        mixBlendMode: "multiply",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Editorial Content Block + CTA Buttons */}
             <div
-              className="absolute left-[5.5vw] top-[18vh] sm:top-[22vh] md:top-[25vh] flex flex-col justify-start max-w-xl md:max-w-2xl pointer-events-auto"
+              className="absolute left-[5.5vw] top-[18vh] sm:top-[22vh] md:top-[25vh] flex flex-col justify-start max-w-xl md:max-w-2xl pointer-events-auto z-10"
             >
               {/* Fashion content text */}
               <div className="select-none text-left mb-6 md:mb-10">
