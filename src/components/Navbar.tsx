@@ -33,9 +33,13 @@ export default function Navbar({
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isTransitionComplete, setIsTransitionComplete] = useState(false);
+  const [hasHero, setHasHero] = useState(false);
 
   useEffect(() => {
-    if (currentPage !== "home") {
+    const hero = document.getElementById("hero-section");
+    setHasHero(!!hero);
+
+    if (!hero) {
       setIsScrolled(true);
       setIsTransitionComplete(true);
       return;
@@ -43,13 +47,9 @@ export default function Navbar({
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 35);
-      
-      const hero = document.getElementById("hero-section");
-      if (!hero) return;
-      const scrollableHeight = hero.offsetHeight - window.innerHeight;
-      if (scrollableHeight <= 0) return;
+      const scrollableHeight = 3.5 * window.innerHeight;
       const progress = window.scrollY / scrollableHeight;
-      setIsTransitionComplete(progress >= 0.88);
+      setIsTransitionComplete(progress >= 0.80);
     };
     
     // Check initial position
@@ -137,9 +137,9 @@ export default function Navbar({
                 <img
                   src="/aanya_logo.png"
                   alt="Aanya Fashions"
-                  className="h-full w-auto object-contain transition-opacity duration-300"
+                  className="h-full w-auto object-contain transition-opacity duration-75"
                   style={{
-                    opacity: (currentPage !== "home" || isTransitionComplete) ? 1 : 0
+                    opacity: (!hasHero || isTransitionComplete) ? 1 : 0
                   }}
                 />
               </div>

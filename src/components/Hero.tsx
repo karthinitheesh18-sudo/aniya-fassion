@@ -28,6 +28,7 @@ export default function Hero({ onScrollToSection }: HeroProps) {
   ];
   const [processedSlides, setProcessedSlides] = useState<string[]>(slideImages);
   const [hasStartedProcessing, setHasStartedProcessing] = useState(false);
+  const [autoFace, setAutoFace] = useState(0);
 
   // ─── Logo placeholder rect tracking ──────────────────────────────────────
   const updateTargetRect = useCallback(() => {
@@ -151,16 +152,9 @@ export default function Hero({ onScrollToSection }: HeroProps) {
       const idx = Math.round((progress / 0.70) * (frames.length - 1));
       cover(frames[Math.max(0, Math.min(frames.length - 1, idx))]);
     } else {
-      // Phase 2 — campaign poster fade-in (untouched, no masks, no dark overlays)
+      // Phase 2 — campaign poster split rotating banner is animated in the DOM.
+      // We only draw the last video frame on the canvas.
       cover(frames[frames.length - 1]);
-      const banner = bannerImgRef.current;
-      if (banner && banner.complete) {
-        const t = Math.min(1, (progress - 0.70) / 0.10);
-        ctx.save();
-        ctx.globalAlpha = t;
-        cover(banner);
-        ctx.restore();
-      }
     }
   }, []);
 
@@ -227,6 +221,18 @@ export default function Hero({ onScrollToSection }: HeroProps) {
     window.addEventListener("resize", setSize);
     return () => window.removeEventListener("resize", setSize);
   }, [drawFrame]);
+
+  // Auto-advance cube faces when scrollProgress >= 0.88 (doors closed completely)
+  useEffect(() => {
+    if (scrollProgress < 0.88) {
+      setAutoFace(0);
+      return;
+    }
+    const timer = setInterval(() => {
+      setAutoFace(prev => (prev + 1) % 4);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [scrollProgress >= 0.88]);
 
   const isPhase2 = scrollProgress > 0.70;
 
@@ -333,37 +339,87 @@ export default function Hero({ onScrollToSection }: HeroProps) {
   };
 
   const getLogoStyles = () => {
-    if (scrollProgress <= 0.70) return { opacity: 0, scale: 0.85, visibility: "hidden" as const, x: 0, y: 0, rotate: 0, bgOpacity: 1, isFixed: false, brightness: 1 };
-    if (scrollProgress <= 0.80) {
-      const t = (scrollProgress - 0.70) / 0.10;
-      return { opacity: t, scale: 0.85 + t * 0.2, visibility: "visible" as const, x: 0, y: 0, rotate: 0, bgOpacity: 1, isFixed: false, brightness: 1 };
-    }
-    if (scrollProgress >= 0.88) {
-      // Hide the flying logo once the animation lands and the static navbar logo takes over
-      return { opacity: 0, scale: 0.85, visibility: "hidden" as const, x: 0, y: 0, rotate: 0, bgOpacity: 0, isFixed: false, brightness: 0 };
-    }
-    const t = Math.max(0, Math.min(1, (scrollProgress - 0.80) / 0.08));
-    const easeT = t * t * (3 - 2 * t);
     const W = window.innerWidth, H = window.innerHeight;
     const iw = Math.min(850, W * 0.85);
     const fs = targetRect ? targetRect.height : 140;
     const tx = targetRect ? targetRect.left + fs / 2 : 80;
     const ty = targetRect ? targetRect.top + fs / 2 : 24;
-    return {
-      opacity: 1,
-      scale: 1.05 - (1.05 - fs / iw) * easeT,
-      visibility: "visible" as const,
-      x: (tx - W / 2) * easeT,
-      y: (ty - H / 2) * easeT,
-      rotate: (1 - easeT) * -4 * Math.sin(easeT * Math.PI),
-      bgOpacity: Math.max(0, 1 - easeT),
-      isFixed: true,
-      brightness: 1 - easeT
-    };
+
+    if (scrollProgress <= 0.70) {
+      return { opacity: 0, scale: 0.85, visibility: "hidden" as const, x: 0, y: 0, rotate: 0, bgOpacity: 1, isFixed: false };
+    }
+    
+    // 0.70 to 0.72 -> Fade in centered
+    if (scrollProgress <= 0.72) {
+      const t = (scrollProgress - 0.70) / 0.02;
+      return { opacity: t, scale: 0.85 + t * 0.15, visibility: "visible" as const, x: 0, y: 0, rotate: 0, bgOpacity: 1, isFixed: true };
+    }
+
+    // 0.72 to 0.80 -> Fly to navbar
+    if (scrollProgress < 0.80) {
+      const t = (scrollProgress - 0.72) / 0.08;
+      const easeT = t * t * (3 - 2 * t);
+      return {
+        opacity: 1 - easeT,
+        scale: 1.0 - (1.0 - fs / iw) * easeT,
+        visibility: "visible" as const,
+        x: (tx - W / 2) * easeT,
+        y: (ty - H / 2) * easeT,
+        rotate: (1 - easeT) * -4 * Math.sin(easeT * Math.PI),
+        bgOpacity: Math.max(0, 1 - easeT),
+        isFixed: true
+      };
+    }
+
+    // 0.80+ -> Hidden
+    return { opacity: 0, scale: fs / iw, visibility: "hidden" as const, x: tx - W / 2, y: ty - H / 2, rotate: -4, bgOpacity: 0, isFixed: false };
   };
 
   const ls = getLogoStyles();
-  const overlayOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.70) / 0.10));
+  const leftCards = [
+    {
+      label: "NEW COLLECTION",
+      title: "Elevate Your Everyday Style",
+      desc: "Crafted for timeless elegance.",
+      cta: "Explore Collection",
+      href: "#products-section"
+    },
+    {
+      label: "SUMMER EDIT",
+      title: "Minimal Luxury",
+      desc: "Refined essentials made for every occasion.",
+      cta: "View Lookbook",
+      href: "#lookbook-section"
+    },
+    {
+      label: "SIGNATURE PIECES",
+      title: "Sartorial Precision",
+      desc: "Designed to make a statement without effort.",
+      cta: "Shop Signature",
+      href: "#products-section"
+    },
+    {
+      label: "THE EDITORIAL",
+      title: "Modern Silhouettes",
+      desc: "A curation of sculptural shapes and premium textures.",
+      cta: "Read Editorial",
+      href: "#lookbook-section"
+    }
+  ];
+
+  const rightImages = [
+    processedSlides[0] || "/slide_model_1.png",
+    processedSlides[1] || "/slide_model_2.png",
+    processedSlides[2] || "/slide_model_3.png",
+    processedSlides[0] || "/slide_model_1.png"
+  ];
+
+  const doorSwingProgress = Math.max(0, Math.min(1, (scrollProgress - 0.80) / 0.08));
+  const cubeRotateProgress = Math.max(0, Math.min(1, (scrollProgress - 0.88) / 0.12));
+  const leftSwingY = (1 - doorSwingProgress) * -90;
+  const rightSwingY = (1 - doorSwingProgress) * 90;
+  const rotationAngle = scrollProgress >= 0.88 ? autoFace * 90 : 0;
+  const overlayOpacity = doorSwingProgress;
 
   return (
     <section ref={containerRef} id="hero-section" style={{ height: "450vh" }} className="relative w-full">
@@ -372,119 +428,160 @@ export default function Hero({ onScrollToSection }: HeroProps) {
         {/* Canvas */}
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" style={{ display: isReady ? "block" : "none" }} />
 
-        {/* ── Hero campaign overlay — fades in after scroll 70% ── */}
-        {isReady && overlayOpacity > 0 && (
+        {/* Sand background overlay for a clean logo focus transition */}
+        {isReady && scrollProgress > 0.70 && (
           <div 
-            className="absolute inset-0 z-20" 
-            style={{ 
-              opacity: overlayOpacity, 
-              pointerEvents: overlayOpacity > 0.05 ? "auto" : "none" 
+            className="absolute inset-0 bg-[#FAF6F0] z-10 pointer-events-none"
+            style={{
+              opacity: Math.max(0, Math.min(1, (scrollProgress - 0.70) / 0.03))
             }}
+          />
+        )}
+
+        {/* ── Symmetrically split full-screen 3D rotating panels (meeting behind logo) ── */}
+        {isReady && scrollProgress >= 0.80 && (
+          <div 
+            className="absolute inset-0 z-20 pointer-events-none" 
+            style={{ opacity: overlayOpacity }}
           >
-            {/* Automatic Clothes Slider (Responsive) */}
-            <div className="absolute right-[2vw] md:right-[5vw] bottom-[4vh] md:top-[6vh] md:bottom-[6vh] w-[60vw] md:w-[50vw] h-[65vh] md:h-[88vh] max-w-[650px] flex items-center justify-center select-none pointer-events-none z-0 md:z-10">
-              {/* Soft decorative background circle */}
-              <div className="absolute w-[95%] h-[95%] rounded-full bg-radial from-[#B76E79]/8 to-transparent blur-3xl" />
-              
-              {/* Image slideshow */}
-              <div className="relative w-full h-full flex items-center justify-center">
-                {processedSlides.map((src, index) => {
-                  const isActive = index === activeSlide;
+            {/* Left Column Full-Screen Panel (Swings left-to-right, rotates vertically X up) */}
+            <div 
+              className="absolute left-0 top-0 w-[50vw] h-screen overflow-hidden"
+              style={{
+                perspective: "1500px",
+                transformOrigin: "left center",
+                transform: `rotateY(${leftSwingY}deg)`,
+                pointerEvents: doorSwingProgress > 0.1 ? "auto" : "none"
+              }}
+            >
+              <div 
+                className="w-full h-full"
+                style={{
+                  transformStyle: "preserve-3d",
+                  transform: `rotateX(${rotationAngle}deg)`,
+                  transition: scrollProgress >= 0.88 ? "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
+                }}
+              >
+                {leftCards.map((card, i) => {
+                  const faceAngle = i * 90;
+                  let delta = (rotationAngle - faceAngle) % 360;
+                  if (delta > 180) delta -= 360;
+                  if (delta < -180) delta += 360;
+                  const cosValue = Math.cos(delta * Math.PI / 180);
+                  const opacity = cosValue > 0.1 ? 1 : 0;
+                  const shadowOpacity = Math.max(0, Math.min(0.65, 0.65 - 0.65 * cosValue));
+
                   return (
-                    <img
-                      key={index}
-                      src={src}
-                      alt={`Fashion look ${index + 1}`}
-                      className="absolute max-h-full max-w-full object-contain transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] drop-shadow-[0_20px_45px_rgba(0,0,0,0.12)]"
+                    <div
+                      key={i}
+                      className="absolute inset-0 bg-[#FAF6F0] flex flex-col justify-center items-center px-6 sm:px-12 md:px-24 pt-[90px] text-center select-none"
                       style={{
-                        opacity: isActive ? (isMobile ? 0.35 : 1) : 0,
-                        transform: isActive 
-                          ? "translateX(0) scale(1) rotate(0deg)" 
-                          : "translateX(60px) scale(0.95) rotate(0.5deg)",
-                        visibility: isActive ? "visible" : "hidden",
+                        transform: `rotateX(${-faceAngle}deg) translateZ(50vh)`,
+                        opacity: opacity,
+                        backfaceVisibility: "hidden",
                       }}
-                    />
+                    >
+                      <div className="max-w-[420px] flex flex-col items-center">
+                        <span className="text-[9px] md:text-xs tracking-[0.45em] uppercase text-[#B76E79] font-bold mb-3 md:mb-5 block">
+                          {card.label}
+                        </span>
+                        <h3 
+                          className="text-xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.15] mb-4 md:mb-6"
+                          style={{ fontFamily: "'Playfair Display', serif" }}
+                        >
+                          {card.title}
+                        </h3>
+                        <p className="text-neutral-500 text-[10px] sm:text-xs md:text-sm tracking-wide font-light leading-relaxed mb-6 md:mb-8 max-w-[280px] sm:max-w-sm">
+                          {card.desc}
+                        </p>
+                        
+                        <a
+                          href={card.href}
+                          onClick={e => {
+                            e.preventDefault();
+                            const element = document.getElementById(card.href.substring(1));
+                            if (element) {
+                              const headerOffset = 80;
+                              const elementPosition = element.getBoundingClientRect().top;
+                              const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                              window.scrollTo({
+                                top: offsetPosition,
+                                behavior: "smooth",
+                              });
+                            }
+                          }}
+                          className="group inline-flex items-center gap-2 text-[9px] md:text-[10px] tracking-[0.25em] font-sans font-bold uppercase text-black hover:text-[#B76E79] transition-colors border-b border-black/20 pb-1 hover:border-[#B76E79]"
+                        >
+                          {card.cta}
+                          <svg className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </a>
+                      </div>
+
+                      {/* 3D Lighting shadow overlay */}
+                      <div 
+                        className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-75"
+                        style={{ opacity: shadowOpacity }}
+                      />
+                    </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Editorial Content Block + CTA Buttons */}
-            <div
-              className="absolute left-[5.5vw] top-[18vh] sm:top-[22vh] md:top-[25vh] flex flex-col justify-start max-w-xl md:max-w-2xl pointer-events-auto z-10"
+            {/* Right Column Full-Screen Panel (Swings right-to-left, rotates vertically X down) */}
+            <div 
+              className="absolute right-0 top-0 w-[50vw] h-screen overflow-hidden"
+              style={{
+                perspective: "1500px",
+                transformOrigin: "right center",
+                transform: `rotateY(${rightSwingY}deg)`,
+                pointerEvents: doorSwingProgress > 0.1 ? "auto" : "none"
+              }}
             >
-              {/* Fashion content text */}
-              <div className="select-none text-left mb-6 md:mb-10">
-                <p 
-                  className="uppercase tracking-[0.45em] text-[#B76E79] text-[11px] sm:text-[13px] font-bold mb-3 sm:mb-4 animate-fade-in"
-                  style={{ letterSpacing: '0.45em' }}
-                >
-                  Aanya Fashions
-                </p>
-                <h1 
-                  className="text-black text-5xl sm:text-7xl md:text-8xl font-bold tracking-tight leading-[1.0] mb-4" 
-                  style={{ fontFamily: "'Playfair Display', serif" }}
-                >
-                  Fashion
-                  <span className="block text-2xl sm:text-4xl md:text-5xl font-medium tracking-normal mt-2 md:mt-3 leading-tight text-neutral-800">
-                    Is More Than Clothing. <br className="hidden sm:inline" /> It's Identity. <span className="italic font-normal text-xl sm:text-3xl md:text-3.5xl text-[#B76E79] font-serif lowercase">live it. own it. be it.</span>
-                  </span>
-                </h1>
-                <p className="text-neutral-600 text-sm sm:text-base tracking-wide font-light leading-relaxed max-w-md md:max-w-xl">
-                  Discover timeless styles, premium fabrics, and curated collections that speak who you are without saying a word.
-                </p>
-              </div>
+              <div 
+                className="w-full h-full"
+                style={{
+                  transformStyle: "preserve-3d",
+                  transform: `rotateX(${-rotationAngle}deg)`,
+                  transition: scrollProgress >= 0.88 ? "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
+                }}
+              >
+                {rightImages.map((src, i) => {
+                  const faceAngle = i * 90;
+                  let delta = (-rotationAngle + faceAngle) % 360;
+                  if (delta > 180) delta -= 360;
+                  if (delta < -180) delta += 360;
+                  const cosValue = Math.cos(delta * Math.PI / 180);
+                  const opacity = cosValue > 0.1 ? 1 : 0;
+                  const shadowOpacity = Math.max(0, Math.min(0.65, 0.65 - 0.65 * cosValue));
 
-              {/* Interactive CTA Buttons */}
-              <div className="flex gap-4 sm:gap-6">
-                {/* Primary — Shop Now */}
-                <a
-                  href="#products-section"
-                  onClick={e => { 
-                    e.preventDefault(); 
-                    const element = document.getElementById("products-section");
-                    if (element) {
-                      const headerOffset = 80;
-                      const elementPosition = element.getBoundingClientRect().top;
-                      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                      window.scrollTo({
-                        top: offsetPosition,
-                        behavior: "smooth",
-                      });
-                    }
-                  }}
-                  className="group relative overflow-hidden inline-flex items-center gap-2.5 font-sans font-bold uppercase tracking-[0.2em] text-[11px] sm:text-xs rounded-full select-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer bg-black text-white px-8 py-4 sm:px-9 sm:py-4.5 border border-black hover:text-black"
-                >
-                  <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] z-0" />
-                  <span className="relative z-10">Shop Now</span>
-                  <svg className="relative z-10 w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </a>
+                  return (
+                    <div
+                      key={i}
+                      className="absolute inset-0 bg-[#FAF6F0] overflow-hidden flex items-center justify-center pt-[90px] select-none"
+                      style={{
+                        transform: `rotateX(${faceAngle}deg) translateZ(50vh)`,
+                        opacity: opacity,
+                        backfaceVisibility: "hidden",
+                      }}
+                    >
+                      <img
+                        src={src}
+                        alt={`Fashion visual ${i + 1}`}
+                        loading="lazy"
+                        className="max-h-[65vh] max-w-[85%] w-auto object-contain"
+                      />
 
-                {/* Secondary — Explore Lookbook */}
-                <a
-                  href="#lookbook-section"
-                  onClick={e => { 
-                    e.preventDefault(); 
-                    const element = document.getElementById("lookbook-section");
-                    if (element) {
-                      const headerOffset = 80;
-                      const elementPosition = element.getBoundingClientRect().top;
-                      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                      window.scrollTo({
-                        top: offsetPosition,
-                        behavior: "smooth",
-                      });
-                    }
-                  }}
-                  className="group inline-flex items-center gap-2.5 font-sans font-bold uppercase tracking-[0.2em] text-[11px] sm:text-xs rounded-full select-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer bg-transparent text-black border border-black/25 hover:border-black px-8 py-4 sm:px-9 sm:py-4.5"
-                >
-                  Explore Lookbook
-                  <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </a>
+                      {/* 3D Lighting shadow overlay */}
+                      <div 
+                        className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-75"
+                        style={{ opacity: shadowOpacity }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -503,7 +600,7 @@ export default function Hero({ onScrollToSection }: HeroProps) {
             <img
               src="/aanya_logo.png"
               alt="Aanya Fashions"
-              className="w-[850px] max-w-[85vw] h-auto object-contain"
+              className="w-[850px] max-w-[85vw] h-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.18)]"
               style={{
                 transform: `translate(${ls.x}px, ${ls.y}px) scale(${ls.scale}) rotate(${ls.rotate}deg)`,
                 transition: "transform 75ms linear",
