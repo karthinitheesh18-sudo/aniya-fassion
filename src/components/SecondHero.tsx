@@ -62,10 +62,13 @@ export default function SecondHero({ onScrollToSection, onSelectCategory }: Seco
   return (
     <RevealSection
       id="second-hero-section"
-      className="py-20 md:py-28 bg-[#FAF6F0] relative overflow-hidden"
+      className="py-10 md:py-28 relative overflow-hidden bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: "url(/hero_ended_banner.png)"
+      }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
           
           {/* Left Column: Text Content */}
           <div className="flex flex-col text-left">
@@ -83,7 +86,7 @@ export default function SecondHero({ onScrollToSection, onSelectCategory }: Seco
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-wrap gap-4 sm:gap-6 items-center mb-16">
+            <div className="flex flex-wrap gap-4 sm:gap-6 items-center mb-8 md:mb-16">
               <Button
                 variant="primary"
                 onClick={handleShopNowClick}
@@ -135,7 +138,7 @@ export default function SecondHero({ onScrollToSection, onSelectCategory }: Seco
             <div
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
-              className="w-full max-w-[460px] h-[480px] sm:h-[560px] overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white bg-[#FAF8F5] relative transition-transform duration-300 ease-out"
+              className="w-full max-w-[460px] h-[360px] sm:h-[560px] overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-white bg-[#FAF8F5] relative transition-transform duration-300 ease-out"
               style={{
                 transform: `translateY(${offsetY * -0.03}px)`,
               }}

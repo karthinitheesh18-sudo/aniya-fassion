@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
+import Button from "./ui/Button";
 
 interface HeroProps {
   onScrollToSection: (id: string) => void;
@@ -138,6 +139,10 @@ export default function Hero({ onScrollToSection }: HeroProps) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Enable high-quality image smoothing for canvas rescaling
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
     const cover = (img: ImageBitmap | HTMLImageElement) => {
       const iw = "width" in img ? img.width : (img as HTMLImageElement).naturalWidth;
       const ih = "height" in img ? img.height : (img as HTMLImageElement).naturalHeight;
@@ -153,8 +158,12 @@ export default function Hero({ onScrollToSection }: HeroProps) {
       cover(frames[Math.max(0, Math.min(frames.length - 1, idx))]);
     } else {
       // Phase 2 — campaign poster split rotating banner is animated in the DOM.
-      // We only draw the last video frame on the canvas.
-      cover(frames[frames.length - 1]);
+      // Draw the preloaded high-resolution campaign banner instead of the compressed last video frame.
+      if (bannerImgRef.current) {
+        cover(bannerImgRef.current);
+      } else {
+        cover(frames[frames.length - 1]);
+      }
     }
   }, []);
 
@@ -229,7 +238,7 @@ export default function Hero({ onScrollToSection }: HeroProps) {
       return;
     }
     const timer = setInterval(() => {
-      setAutoFace(prev => (prev + 1) % 4);
+      setAutoFace(prev => prev + 1);
     }, 3500);
     return () => clearInterval(timer);
   }, [scrollProgress >= 0.88]);
@@ -415,10 +424,8 @@ export default function Hero({ onScrollToSection }: HeroProps) {
   ];
 
   const doorSwingProgress = Math.max(0, Math.min(1, (scrollProgress - 0.80) / 0.08));
-  const cubeRotateProgress = Math.max(0, Math.min(1, (scrollProgress - 0.88) / 0.12));
   const leftSwingY = (1 - doorSwingProgress) * -90;
   const rightSwingY = (1 - doorSwingProgress) * 90;
-  const rotationAngle = scrollProgress >= 0.88 ? autoFace * 90 : 0;
   const overlayOpacity = doorSwingProgress;
 
   return (
@@ -442,61 +449,84 @@ export default function Hero({ onScrollToSection }: HeroProps) {
         {isReady && scrollProgress >= 0.80 && (
           <div 
             className="absolute inset-0 z-20 pointer-events-none" 
-            style={{ opacity: overlayOpacity }}
+            style={{ 
+              perspective: "3200px",
+              transformStyle: "preserve-3d"
+            }}
           >
-            {/* Left Column Full-Screen Panel (Swings left-to-right, rotates vertically X up) */}
+            {/* Left Column Full-Screen Panel (Swings left-to-right) */}
             <div 
-              className="absolute left-0 top-0 w-[50vw] h-screen overflow-hidden"
+              className="absolute left-0 top-0 w-[50vw] h-screen overflow-visible"
               style={{
-                perspective: "1500px",
+                transformStyle: "preserve-3d",
                 transformOrigin: "left center",
                 transform: `rotateY(${leftSwingY}deg)`,
                 pointerEvents: doorSwingProgress > 0.1 ? "auto" : "none"
               }}
             >
               <div 
-                className="w-full h-full"
-                style={{
-                  transformStyle: "preserve-3d",
-                  transform: `rotateX(${rotationAngle}deg)`,
-                  transition: scrollProgress >= 0.88 ? "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
-                }}
+                className="w-full h-full relative"
               >
                 {leftCards.map((card, i) => {
-                  const faceAngle = i * 90;
-                  let delta = (rotationAngle - faceAngle) % 360;
-                  if (delta > 180) delta -= 360;
-                  if (delta < -180) delta += 360;
-                  const cosValue = Math.cos(delta * Math.PI / 180);
-                  const opacity = cosValue > 0.1 ? 1 : 0;
-                  const shadowOpacity = Math.max(0, Math.min(0.65, 0.65 - 0.65 * cosValue));
+                  const isActive = i === (autoFace % 4);
+                  const isPrev = i === ((autoFace - 1 + 4) % 4);
+                  const isNext = i === ((autoFace + 1) % 4);
+
+                  const isCubeActive = scrollProgress >= 0.88;
+
+                  let transformStr = "translateZ(50vh) scale(0.95)";
+                  let opacity = 0;
+                  let zIndex = 0;
+
+                  if (isCubeActive) {
+                    if (isActive) {
+                      transformStr = "translateZ(50vh) scale(1)";
+                      opacity = 1;
+                      zIndex = 10;
+                    } else if (isPrev) {
+                      transformStr = "translateZ(50vh) scale(0.98)";
+                      opacity = 0;
+                      zIndex = 5;
+                    }
+                  } else {
+                    if (i === 0) {
+                      transformStr = "translateZ(50vh) translate3d(0,0,0)";
+                      opacity = overlayOpacity;
+                      zIndex = 10;
+                    }
+                  }
 
                   return (
                     <div
                       key={i}
-                      className="absolute inset-0 bg-[#FAF6F0] flex flex-col justify-center items-center px-6 sm:px-12 md:px-24 pt-[90px] text-center select-none"
+                      className="absolute inset-0 bg-[#FAF6F0] flex flex-col justify-center items-center pt-[40px] sm:pt-[90px] text-center select-none"
                       style={{
-                        transform: `rotateX(${-faceAngle}deg) translateZ(50vh)`,
+                        transform: transformStr,
                         opacity: opacity,
-                        backfaceVisibility: "hidden",
+                        zIndex: zIndex,
+                        transition: isCubeActive ? "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1)" : "none",
+                        paddingLeft: isMobile ? "1.5rem" : "6vw",
+                        paddingRight: isMobile ? "0.75rem" : "2vw",
                       }}
                     >
                       <div className="max-w-[420px] flex flex-col items-center">
-                        <span className="text-[9px] md:text-xs tracking-[0.45em] uppercase text-[#B76E79] font-bold mb-3 md:mb-5 block">
+                        <span className="text-[9px] md:text-xs tracking-[0.45em] uppercase text-[#B76E79] font-bold mb-3 sm:mb-5 block">
                           {card.label}
                         </span>
                         <h3 
-                          className="text-xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.15] mb-4 md:mb-6"
+                          className="text-lg sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.15] mb-4 sm:mb-6"
                           style={{ fontFamily: "'Playfair Display', serif" }}
                         >
                           {card.title}
                         </h3>
-                        <p className="text-neutral-500 text-[10px] sm:text-xs md:text-sm tracking-wide font-light leading-relaxed mb-6 md:mb-8 max-w-[280px] sm:max-w-sm">
+                        <p className="text-neutral-500 text-[10px] sm:text-xs md:text-sm tracking-wide font-light leading-relaxed mb-5 sm:mb-8 max-w-[280px] sm:max-w-sm">
                           {card.desc}
                         </p>
                         
-                        <a
+                        <Button
+                          variant="primary"
                           href={card.href}
+                          className="!px-5 !py-3 !text-[10px] !tracking-[0.18em] sm:!px-8 sm:!py-4 sm:!text-[10px] sm:!tracking-[0.2em] transform-gpu will-change-transform"
                           onClick={e => {
                             e.preventDefault();
                             const element = document.getElementById(card.href.substring(1));
@@ -510,74 +540,85 @@ export default function Hero({ onScrollToSection }: HeroProps) {
                               });
                             }
                           }}
-                          className="group inline-flex items-center gap-2 text-[9px] md:text-[10px] tracking-[0.25em] font-sans font-bold uppercase text-black hover:text-[#B76E79] transition-colors border-b border-black/20 pb-1 hover:border-[#B76E79]"
+                          icon={
+                            <svg className="w-3 h-3 text-white group-hover:text-black transition-colors" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                          }
                         >
                           {card.cta}
-                          <svg className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </a>
+                        </Button>
                       </div>
-
-                      {/* 3D Lighting shadow overlay */}
-                      <div 
-                        className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-75"
-                        style={{ opacity: shadowOpacity }}
-                      />
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Right Column Full-Screen Panel (Swings right-to-left, rotates vertically X down) */}
+            {/* Right Column Full-Screen Panel (Swings right-to-left) */}
             <div 
-              className="absolute right-0 top-0 w-[50vw] h-screen overflow-hidden"
+              className="absolute right-0 top-0 w-[50vw] h-screen overflow-visible"
               style={{
-                perspective: "1500px",
+                transformStyle: "preserve-3d",
                 transformOrigin: "right center",
                 transform: `rotateY(${rightSwingY}deg)`,
                 pointerEvents: doorSwingProgress > 0.1 ? "auto" : "none"
               }}
             >
               <div 
-                className="w-full h-full"
-                style={{
-                  transformStyle: "preserve-3d",
-                  transform: `rotateX(${-rotationAngle}deg)`,
-                  transition: scrollProgress >= 0.88 ? "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
-                }}
+                className="w-full h-full relative"
               >
                 {rightImages.map((src, i) => {
-                  const faceAngle = i * 90;
-                  let delta = (-rotationAngle + faceAngle) % 360;
-                  if (delta > 180) delta -= 360;
-                  if (delta < -180) delta += 360;
-                  const cosValue = Math.cos(delta * Math.PI / 180);
-                  const opacity = cosValue > 0.1 ? 1 : 0;
-                  const shadowOpacity = Math.max(0, Math.min(0.65, 0.65 - 0.65 * cosValue));
+                  const isActive = i === (autoFace % 4);
+                  const isPrev = i === ((autoFace - 1 + 4) % 4);
+                  const isNext = i === ((autoFace + 1) % 4);
+
+                  const isCubeActive = scrollProgress >= 0.88;
+
+                  let transformStr = "translateZ(50vh) scale(0.95)";
+                  let opacity = 0;
+                  let zIndex = 0;
+
+                  if (isCubeActive) {
+                    if (isActive) {
+                      transformStr = "translateZ(50vh) scale(1)";
+                      opacity = 1;
+                      zIndex = 10;
+                    } else if (isPrev) {
+                      transformStr = "translateZ(50vh) scale(0.98)";
+                      opacity = 0;
+                      zIndex = 5;
+                    }
+                  } else {
+                    if (i === 0) {
+                      transformStr = "translateZ(50vh) translate3d(0,0,0)";
+                      opacity = overlayOpacity;
+                      zIndex = 10;
+                    }
+                  }
 
                   return (
                     <div
                       key={i}
-                      className="absolute inset-0 bg-[#FAF6F0] overflow-hidden flex items-center justify-center pt-[90px] select-none"
+                      className="absolute inset-0 bg-[#FAF6F0] overflow-hidden flex items-center justify-center pt-[40px] sm:pt-[90px] select-none"
                       style={{
-                        transform: `rotateX(${faceAngle}deg) translateZ(50vh)`,
+                        transform: transformStr,
                         opacity: opacity,
-                        backfaceVisibility: "hidden",
+                        zIndex: zIndex,
+                        transition: isCubeActive ? "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1)" : "none",
+                        paddingRight: isMobile ? "1.5rem" : "6vw",
+                        paddingLeft: isMobile ? "0.75rem" : "2vw",
                       }}
                     >
                       <img
                         src={src}
                         alt={`Fashion visual ${i + 1}`}
                         loading="lazy"
-                        className="max-h-[65vh] max-w-[85%] w-auto object-contain"
-                      />
-
-                      {/* 3D Lighting shadow overlay */}
-                      <div 
-                        className="absolute inset-0 bg-black pointer-events-none transition-opacity duration-75"
-                        style={{ opacity: shadowOpacity }}
+                        className="max-h-[78vh] sm:max-h-[65vh] max-w-[90%] sm:max-w-[85%] w-auto object-contain"
+                        style={{
+                          willChange: "transform",
+                          transform: "translate3d(0, 0, 0)",
+                        }}
                       />
                     </div>
                   );
